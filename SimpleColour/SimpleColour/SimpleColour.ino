@@ -28,9 +28,11 @@ void loop() {
 		Serial.println("\n\n********** Simple Colour Changer **********");
 		while (stop == 0)
 		{
-			if (Serial.available()) {
+			if (Serial.available()) 
+			{
 				for (i = 0; i < 3; i++)
 				{
+
 					//colour[i] = Serial.parseInt();
 					//R = Serial.read();
 					end = Serial.readStringUntil('\n');
@@ -45,12 +47,14 @@ void loop() {
 
 						//R = R - '0';
 						// say what you got:
-						Serial.print("I received: ");
+						//Serial.print("I received: ");
 						Serial.println(colour[i], DEC);
-					}
+					} 
 				}
 				changeColour(colour);
-			}
+			
+				}
+			//Serial.println(".");
 		}
 		chooseProgram();
 
