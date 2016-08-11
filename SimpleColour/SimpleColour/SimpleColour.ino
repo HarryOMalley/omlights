@@ -14,8 +14,9 @@ void setup() {
 	for (n = 0; n < NUM_LEDS; n++)
 	{
 		strip.setPixelColor(n, 0, 0, 100);
+		strip.show();
 	}
-	strip.show(); // Initialize all pixels to 'off'
+	// Initialize all pixels to 'off'
 	chooseProgram();
 }
 
@@ -28,14 +29,14 @@ void loop() {
 		Serial.println("\n\n********** Simple Colour Changer **********");
 		while (stop == 0)
 		{
-			if (Serial.available()) 
+			if (Serial.available())
 			{
 				for (i = 0; i < 3; i++)
 				{
 
-					//colour[i] = Serial.parseInt();
+					colour[i] = Serial.parseInt();
 					//R = Serial.read();
-					end = Serial.readStringUntil('\n');
+					//end = Serial.readStringUntil('\n');
 					//exit.concat(R);
 					if (end == "exit")
 					{
@@ -48,13 +49,13 @@ void loop() {
 						//R = R - '0';
 						// say what you got:
 						//Serial.print("I received: ");
-						Serial.println(colour[i], DEC);
-					} 
+						//Serial.println(colour[i], DEC);
+					}
 				}
 				changeColour(colour);
-			
-				}
-			//Serial.println(".");
+
+			}
+			//Serial.println(".");n
 		}
 		chooseProgram();
 
@@ -66,7 +67,21 @@ void loop() {
 		break;
 
 	case 2:
-		Serial.println("Nothing to see here...");
+		while (stop == 0)
+		{
+			rainbowCycle(3);
+			if (Serial.available())
+			{
+				end = Serial.readStringUntil('\n');
+				//exit.concat(R);
+				if (end == "exit")
+				{
+					stop = 1;
+					break;
+				}
+				else;
+			}
+		}
 		break;
 	}
 }
@@ -112,4 +127,37 @@ void chooseProgram()
 			break;
 		}
 	}
+}
+void rainbowCycle(uint8_t wait) {
+	uint16_t i, j;
+	uint16_t randnum[strip.numPixels()];
+	for (i = 0; i < strip.numPixels(); i++)
+	{
+		randnum[i] = random(256);
+	}
+
+	for (j = 0; j < 256 * 100; j++)
+	{ // 5 cycles of all colors on wheel - i think this just makes it do it over and over
+		for (i = 0; i < strip.numPixels(); i++)
+		{
+			strip.setPixelColor(i, Wheel(((randnum[i] * 256 / strip.numPixels()) + j) & 255));
+		}
+		strip.show();
+		delay(wait);
+	}
+}
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t Wheel(byte WheelPos)
+{
+	WheelPos = 255 - WheelPos;
+	if (WheelPos < 85) {
+		return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+	}
+	if (WheelPos < 170) {
+		WheelPos -= 85;
+		return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+	}
+	WheelPos -= 170;
+	return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
