@@ -126,7 +126,7 @@ void chooseProgram()
 	Serial.println("Available programs:");
 	Serial.println("1. Simple Colour Changer");
 	Serial.println("2. Flash");
-	Serial.println("3. something else");
+	Serial.println("3. Rainbow");
 	Serial.println("Please select desired program: ");
 	while (Serial.available() == 0)
 	{
