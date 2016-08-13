@@ -22,84 +22,38 @@ void setup() {
 
 void loop() {
 
-	switch (program)
+
+	while (stop == 0)
 	{
-	case 1:
-		stop = 0;
-		Serial.println("\n\n********** Simple Colour Changer **********");
-		while (stop == 0)
+		rainbowCycle(3);
+		if (Serial.available())
 		{
-			if (Serial.available())
+			end = Serial.readStringUntil('\n');
+			//exit.concat(R);
+			if (end == "exit")
 			{
-				for (i = 0; i < 3; i++)
-				{
-
-					colour[i] = Serial.parseInt();
-					//R = Serial.read();
-					//end = Serial.readStringUntil('\n');
-					//exit.concat(R);
-					if (end == "exit")
-					{
-						stop = 1;
-						break;
-					}
-					else
-					{
-
-						//R = R - '0';
-						// say what you got:
-						//Serial.print("I received: ");
-						//Serial.println(colour[i], DEC);
-					}
-				}
-				changeColour(colour);
-
+				stop = 1;
+				break;
 			}
-			//Serial.println(".");n
+			else;
 		}
-		chooseProgram();
+	}
 
-		break;
-	default:
-		Serial.println("Error: Invalid number entered. Please reselect...");
-		delay(500);
-		chooseProgram();
-		break;
-
-	case 2:
-		while (stop == 0)
-		{
-			rainbowCycle(3);
-			if (Serial.available())
-			{
-				end = Serial.readStringUntil('\n');
-				//exit.concat(R);
-				if (end == "exit")
-				{
-					stop = 1;
-					break;
-				}
-				else;
-			}
-		}
-		break;
-	case 3:
-		while (stop == 0)
-		{
-			for (red = 0; red <= 255; red++) {
-				for (green = 0; green <= 255; green++) {
-					for (blue = 0; blue <= 255; blue++) {
-						colour[0] = red;
-						colour[1] = green;
-						colour[2] = blue;
-						changeColour(colour);
-					}
+	while (stop == 0)
+	{
+		for (red = 0; red <= 255; red++) {
+			for (green = 0; green <= 255; green++) {
+				for (blue = 0; blue <= 255; blue++) {
+					colour[0] = red;
+					colour[1] = green;
+					colour[2] = blue;
+					changeColour(colour);
 				}
 			}
 		}
-		break;
 	}
 }
+			
 void changeColour(int colour[3])
 {
 	R = colour[0];
