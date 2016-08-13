@@ -3,7 +3,7 @@
 #define NUM_LEDS 300
 char R;
 String end;
-int n, i, G, B, program, stop = 0, colour[3];
+int n, i, G, B, program, stop = 0, colour[3], red, green, blue;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -80,6 +80,21 @@ void loop() {
 					break;
 				}
 				else;
+			}
+		}
+		break;
+	case 3:
+		while (stop == 0)
+		{
+			for (red = 0; red <= 255; red++) {
+				for (green = 0; green <= 255; green++) {
+					for (blue = 0; blue <= 255; blue++) {
+						colour[0] = red;
+						colour[1] = green;
+						colour[2] = blue;
+						changeColour(colour);
+					}
+				}
 			}
 		}
 		break;
