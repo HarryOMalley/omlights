@@ -1,9 +1,13 @@
 #include <Adafruit_NeoPixel.h>
+#include <stdio.h>
+#include <string.h>
 #define PIN 6
 #define NUM_LEDS 300
-char R;
+
+char input[20], inChar;
+byte index = 0;
 String end;
-int n, i, G, B, program, stop = 0, colour[3], red, green, blue;
+int n, i, R, G, B, program, stop = 0, colour[3], red, green, blue;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -14,30 +18,56 @@ void setup() {
 	for (n = 0; n < NUM_LEDS; n++)
 	{
 		strip.setPixelColor(n, 0, 0, 100);
-		strip.show();
+
 	}
+	strip.show();
 	// Initialize all pixels to 'off'
-	chooseProgram();
+	//chooseProgram();
 }
 
 void loop() {
 
-
-	while (stop == 0)
+	if (Serial.available() > 0)
 	{
-		rainbowCycle(3);
-		if (Serial.available())
+		memset(&input, 0, sizeof(input));
+		index = 0;
+		while (Serial.available() > 0) // Only read when there is data available
 		{
-			end = Serial.readStringUntil('\n');
-			//exit.concat(R);
-			if (end == "exit")
-			{
-				stop = 1;
-				break;
-			}
-			else;
+			inChar = Serial.read(); // Read a character
+			input[index] = inChar; // Store it
+			index++; // Increment where to write next
+			input[index] = '\0'; // Null terminate the string
+			//Serial.println(input);
+			//Serial.println("1");
 		}
+		Serial.print("I received: ");
+		Serial.println(input);
+
 	}
+
+
+
+
+
+
+
+
+
+	//while (stop == 0)
+	//{
+	//	rainbowCycle(3);
+	//	if (Serial.available())
+	//	{
+	//		end = Serial.readStringUntil('\n');
+	//		//exit.concat(R);
+	//		if (end == "exit")
+	//		{
+	//			stop = 1;
+	//			break;
+	//		}
+	//		else;
+	//	}
+	//}
 
 	//while (stop == 0)
 	//{
@@ -53,7 +83,7 @@ void loop() {
 	//	}
 	//}
 }
-			
+
 void changeColour(int colour[3])
 {
 	R = colour[0];
