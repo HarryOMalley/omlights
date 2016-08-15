@@ -17,71 +17,63 @@ void setup() {
 	strip.begin();
 	for (n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, 0, 0, 100);
-
+		strip.setPixelColor(n, 100, 100, 100);
 	}
 	strip.show();
 	// Initialize all pixels to 'off'
 	//chooseProgram();
 }
-
 void loop() {
-
-	if (Serial.available() > 0)
+	//index = 0;
+	//memset(&input, 0, sizeof(input));
+	while (Serial.available() > 0) // Only read when there is data available
 	{
-		memset(&input, 0, sizeof(input));
-		index = 0;
-		while (Serial.available() > 0) // Only read when there is data available
-		{
-			inChar = Serial.read(); // Read a character
-			input[index] = inChar; // Store it
-			index++; // Increment where to write next
-			input[index] = '\0'; // Null terminate the string
-			//Serial.println(input);
-			//Serial.println("1");
-		}
+		inChar = Serial.read(); // Read a character
+		input[index] = inChar; // Store it
+		index++; // Increment where to write next
+		input[index] = '\0'; // Null terminate the string
+		//Serial.println(input);
+		//Serial.println("1");
 		Serial.print("I received: ");
 		Serial.println(input);
-
 	}
-
-
-
-
-
-
-
-
-
+	R = Wheel(i);
+	i++;
+	//Serial.print(i);
+	//Serial.print(" = ");
+	Serial.println(R);
+	delay(100);
+	if (i > 255)
+		i = 0;
 	//while (stop == 0)
-	//{
-	//	rainbowCycle(3);
-	//	if (Serial.available())
-	//	{
-	//		end = Serial.readStringUntil('\n');
-	//		//exit.concat(R);
-	//		if (end == "exit")
-	//		{
-	//			stop = 1;
-	//			break;
-	//		}
-	//		else;
-	//	}
-	//}
+		//{
+		//	rainbowCycle(3);
+		//	if (Serial.available())
+		//	{
+		//		end = Serial.readStringUntil('\n');
+		//		//exit.concat(R);
+		//		if (end == "exit")
+		//		{
+		//			stop = 1;
+		//			break;
+		//		}
+		//		else;
+		//	}
+		//}
 
-	//while (stop == 0)
-	//{
-	//	for (red = 0; red <= 255; red++) {
-	//		for (green = 0; green <= 255; green++) {
-	//			for (blue = 0; blue <= 255; blue++) {
-	//				colour[0] = red;
-	//				colour[1] = green;
-	//				colour[2] = blue;
-	//				changeColour(colour);
-	//			}
-	//		}
-	//	}
-	//}
+		//while (stop == 0)
+		//{
+		//	for (red = 0; red <= 255; red++) {
+		//		for (green = 0; green <= 255; green++) {
+		//			for (blue = 0; blue <= 255; blue++) {
+		//				colour[0] = red;
+		//				colour[1] = green;
+		//				colour[2] = blue;
+		//				changeColour(colour);
+		//			}
+		//		}
+		//	}
+		//}
 }
 
 void changeColour(int colour[3])
@@ -91,7 +83,6 @@ void changeColour(int colour[3])
 	B = colour[2];
 	for (n = 0; n < NUM_LEDS; n++)
 	{
-
 		strip.setPixelColor(n, R, G, B);
 		strip.show();
 	}
@@ -114,9 +105,7 @@ void chooseProgram()
 	Serial.println("Please select desired program: ");
 	while (Serial.available() == 0)
 	{
-
 		program = Serial.parseInt();
-
 		if (program > 0)
 		{
 			Serial.print("Launching Program ");
@@ -129,17 +118,16 @@ void chooseProgram()
 }
 void rainbowCycle(uint8_t wait) {
 	uint16_t i, j;
-	uint16_t randnum[strip.numPixels()];
-	for (i = 0; i < strip.numPixels(); i++)
+	uint16_t randnum[NUM_LEDS];
+	for (i = 0; i < NUM_LEDS; i++)
 	{
 		randnum[i] = random(256);
 	}
-
 	for (j = 0; j < 256 * 100; j++)
 	{ // 5 cycles of all colors on wheel - i think this just makes it do it over and over
-		for (i = 0; i < strip.numPixels(); i++)
+		for (i = 0; i < NUM_LEDS; i++)
 		{
-			strip.setPixelColor(i, Wheel(((randnum[i] * 256 / strip.numPixels()) + j) & 255));
+			strip.setPixelColor(i, Wheel(((randnum[i] * 256 / NUM_LEDS) + j) & 255));
 		}
 		strip.show();
 		delay(wait);

@@ -8,27 +8,6 @@
     <VCCodeModel>
       <VCCodeMacros />
     </VCCodeModel>
-    <BreakPoints>
-      <BreakPoint Index="1" Name="SimpleColour.ino, line 32" Id="e1a5488c-ec08-4aa0-8465-9dd4db326914" Enabled="1" Message="" MessageTextType="2" PreProcessedMessage="" Condition="" ConditionType="1" CurrentHits="0" File="c:\users\hazao\source\repos\ledmasterprogram\simplecolour\simplecolour\simplecolour.ino" FileLine="32" FileColumn="1" FunctionName="loop()" FunctionLineOffset="5" FunctionColumnOffset="1" HitCountTarget="1" HitCountType="1" Language="C++" LocationType="3" Tag="&lt;vmbp Id='7d520656-243b-41d1-b22d-cbfbc5dda891'/&gt;" Type="1" ToString="System.__ComObject" BreakWhenHit="1">
-        <Source>25		//chooseProgram();
-26	}
-27	
-28	void loop() {
-29	
-30		if (Serial.available() &gt; 0)
-31		{
---&gt;32			memset(&amp;input, 0, sizeof(input));
-33			index = 0;
-34			while (Serial.available() &gt; 0) // Only read when there is data available
-35			{
-36				inChar = Serial.read(); // Read a character
-37				input[index] = inChar; // Store it
-38				index++; // Increment where to write next
-39				input[index] = '\0'; // Null terminate the string
-40				//Serial.println(input);
-41				//Serial.println("1");
-</Source>
-      </BreakPoint>
-    </BreakPoints>
+    <BreakPoints />
   </Program>
 </VisualMicro>
