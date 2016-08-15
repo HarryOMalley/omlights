@@ -13,7 +13,7 @@ void setup() {
 	strip.begin();
 	for (n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, 0, 0, 100);
+		strip.setPixelColor(n, 20, 20, 20);
 		strip.show();
 	}
 	// Initialize all pixels to 'off'

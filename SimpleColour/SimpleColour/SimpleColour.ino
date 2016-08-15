@@ -39,19 +39,19 @@ void loop() {
 		}
 	}
 
-	while (stop == 0)
-	{
-		for (red = 0; red <= 255; red++) {
-			for (green = 0; green <= 255; green++) {
-				for (blue = 0; blue <= 255; blue++) {
-					colour[0] = red;
-					colour[1] = green;
-					colour[2] = blue;
-					changeColour(colour);
-				}
-			}
-		}
-	}
+	//while (stop == 0)
+	//{
+	//	for (red = 0; red <= 255; red++) {
+	//		for (green = 0; green <= 255; green++) {
+	//			for (blue = 0; blue <= 255; blue++) {
+	//				colour[0] = red;
+	//				colour[1] = green;
+	//				colour[2] = blue;
+	//				changeColour(colour);
+	//			}
+	//		}
+	//	}
+	//}
 }
 			
 void changeColour(int colour[3])
