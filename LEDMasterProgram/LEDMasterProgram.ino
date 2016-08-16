@@ -9,6 +9,7 @@ int colour[3];
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
+
 void setup() {
 
 	Serial.begin(9600);
