@@ -31,7 +31,7 @@ void loop() {
 	switch (program)
 	{
 	case 1:
-		Serial.println("\n\n********** Simple Colour Changer **********");
+		Serial.println("\n\n\nSingle Colour Mode\n\n");
 		while (stop == 0)
 		{
 			getInput();
@@ -63,12 +63,7 @@ void loop() {
 		while (stop == 0)
 		{
 			rainbowCycle(3);
-			getInput();
-			if (checkWords(inString) == 1)
-			{
-				stop = 1;
-				break;
-			}
+			break;
 		}
 		break;
 	default:
@@ -139,22 +134,32 @@ int chooseProgram(void)
 		}
 	}
 }
-void rainbowCycle(uint8_t wait) {
+int rainbowCycle(uint8_t wait) {
 	uint16_t i, j;
 	uint16_t randnum[strip.numPixels()];
 	for (i = 0; i < strip.numPixels(); i++)
 	{
 		randnum[i] = random(256);
 	}
-
-	for (j = 0; j < 256 * 100; j++)
-	{ // 5 cycles of all colors on wheel - i think this just makes it do it over and over
-		for (i = 0; i < strip.numPixels(); i++)
-		{
-			strip.setPixelColor(i, Wheel(((randnum[i] * 256 / strip.numPixels()) + j) & 255));
+	while (true)
+	{
+		for (j = 0; j < 256 * 100; j++)
+		{ // 5 cycles of all colors on wheel - i think this just makes it do it over and over
+			for (i = 0; i < strip.numPixels(); i++)
+			{
+				strip.setPixelColor(i, Wheel(((randnum[i] * 256 / strip.numPixels()) + j) & 255));
+			}
+			strip.show();
+			delay(wait);
+			if (Serial.available() > 0)
+			{
+				getInput();
+				if (checkWords(inString) == 1)
+				{
+					return 0;
+				}
+			}
 		}
-		strip.show();
-		delay(wait);
 	}
 }
 // Input a value 0 to 255 to get a color value.
