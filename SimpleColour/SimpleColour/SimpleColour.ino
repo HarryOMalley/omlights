@@ -6,7 +6,7 @@
 
 char input[20], inChar, checkExit[] = "exit";
 byte index = 0;
-String end;
+String programSelect;
 int n, i, R, G, B, program, stop = 0, colour[3], red, green, blue;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
@@ -44,9 +44,11 @@ void loop() {
 			break;
 	}
 	
-	if (strcmp(input, checkExit) != 0)
+	if (strcmp(input, checkExit) == 0)
 		chooseProgram();
-	
+	programSelect = input;
+	Serial.println(programSelect);
+	Serial.println(programSelect.toInt());
 	
 	memset(&input, 0, sizeof(input));
 	index = 0;
