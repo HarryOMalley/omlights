@@ -37,25 +37,24 @@ void loop() {
 		input[index] = inChar; // Store it
 		index++;
 		input[index] = '\0'; // Null terminate the string
-		Serial.println(inChar);
-
-		Serial.print("I received: ");
-		Serial.println(input);
+		//Serial.println(inChar);
+		//Serial.print("I received: ");
+		//Serial.println(input);
 		delay(10);
 		if (Serial.available() == 0)
 			break;
 	}
-	
+
 	if (strcmp(input, checkExit) == 0)
 		chooseProgram();
-	programSelect = input;
-	test = strtok(input, " ");
-	numbers[0] = test;
-	i = 1;
-	while (test != NULL)
+
+	i = 1; // Counter
+	String n = strtok(input, " ");
+	numbers[0] = n;
+	while (n != NULL)
 	{
-		test = strtok(NULL, " ");
-		numbers[i] = test;
+		n = strtok(NULL, " ");
+		numbers[i] = n;
 		i++;
 	}
 
@@ -63,18 +62,9 @@ void loop() {
 	strcpy(GChar, numbers[1].c_str());
 	strcpy(BChar, numbers[2].c_str());
 
-	R = atoi(RChar);
-	G = atoi(GChar);
-	B = atoi(BChar);
-
-	colour[0] = R;
-	colour[1] = G;
-	colour[2] = B;
-
-	Serial.print("Here:");
-	Serial.println(R);
-	Serial.println(G);
-	Serial.println(B);
+	colour[0] = atoi(RChar);
+	colour[1] = atoi(GChar);
+	colour[2] = atoi(BChar);
 
 	changeColour(colour);
 
@@ -82,7 +72,7 @@ void loop() {
 	//Serial.println(programSelect);
 
 	//Serial.println(programSelect.toInt());
-	
+
 	memset(&input, 0, sizeof(input));
 	index = 0;
 
