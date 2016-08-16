@@ -2,132 +2,121 @@
 #include <Adafruit_NeoPixel.h>
 #define PIN 6
 #define NUM_LEDS 300
-char R;
 char inString[20], inChar, exitString[] = "exit";
-byte index = 0;
+
 String programString;
-int n, i, G, B, program, stop = 0, colour[3], red, green, blue;
+int colour[3];
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
+
 	Serial.begin(9600);
 	Serial.println("Starting...");
 	strip.begin();
-	for (n = 0; n < NUM_LEDS; n++)
+	strip.setBrightness(255);
+	for (int n = 0; n < NUM_LEDS; n++)
 	{
 		strip.setPixelColor(n, 20, 20, 20);
 		strip.show();
 	}
-	chooseProgram();
 }
 
 void loop() {
-	index = 0;
-	getInput();
 
-
-	if (strcmp(inString, exitString) == 0)
-		chooseProgram();
-	programString = inString;
-	Serial.println(programString);
-	Serial.println(programString.toInt());
-	
-	resetString(inString);
+	int program = chooseProgram();
+	int stop = 0;
 
 	switch (program)
 	{
 	case 1:
-		stop = 0;
 		Serial.println("\n\n********** Simple Colour Changer **********");
 		while (stop == 0)
 		{
-			if (Serial.available())
+			getInput();
+			if (checkWords(inString) == 1)
 			{
-				for (i = 0; i < 3; i++)
-				{
-
-					colour[i] = Serial.parseInt();
-					//R = Serial.read();
-					//end = Serial.readStringUntil('\n');
-					//exit.concat(R);
-					if (end == "exit")
-					{
-						stop = 1;
-						break;
-					}
-					else
-					{
-
-						//R = R - '0';
-						// say what you got:
-						//Serial.print("I received: ");
-						//Serial.println(colour[i], DEC);
-					}
-				}
-				changeColour(colour);
-
+				Serial.println("I should stop now...");
+				stop = 1;
+				break;
 			}
-			//Serial.println(".");n
+			else if (checkWords(inString) == 2)
+			{
+				Serial.print("Input brightness value (0-255): ");
+				while (!Serial.available()); // hang program until a byte is received notice the ; after the while()
+				{}
+				int brightness = Serial.parseInt();
+				Serial.print("Setting brightness to: ");
+				Serial.println(brightness);
+				strip.setBrightness(brightness);
+				strip.show();
+			}
+			else 
+			{
+				parseInt(inString);
+				changeColour(colour);
+			}
 		}
-		chooseProgram();
-
+		break;
+	case 2:
+		while (stop == 0)
+		{
+			rainbowCycle(3);
+			getInput();
+			if (checkWords(inString) == 1)
+			{
+				stop = 1;
+				break;
+			}
+		}
 		break;
 	default:
 		Serial.println("Error: Invalid number entered. Please reselect...");
 		delay(500);
 		chooseProgram();
 		break;
-
-	case 2:
-		while (stop == 0)
-		{
-			rainbowCycle(3);
-			if (Serial.available())
+		/*case 3:
+			while (stop == 0)
 			{
-				end = Serial.readStringUntil('\n');
-				//exit.concat(R);
-				if (end == "exit")
-				{
-					stop = 1;
-					break;
-				}
-				else;
-			}
-		}
-		break;
-	case 3:
-		while (stop == 0)
-		{
-			for (red = 0; red <= 255; red++) {
-				for (green = 0; green <= 255; green++) {
-					for (blue = 0; blue <= 255; blue++) {
-						colour[0] = red;
-						colour[1] = green;
-						colour[2] = blue;
-						changeColour(colour);
+				for (red = 0; red <= 255; red++) {
+					for (green = 0; green <= 255; green++) {
+						for (blue = 0; blue <= 255; blue++) {
+							colour[0] = red;
+							colour[1] = green;
+							colour[2] = blue;
+							changeColour(colour);
+						}
 					}
 				}
 			}
-		}
-		break;
+			break;*/
+
 	}
+
 }
 
 void changeColour(int colour[3])
 {
-	R = colour[0];
-	G = colour[1];
-	B = colour[2];
-	for (n = 0; n < NUM_LEDS; n++)
-	{
+	int R = colour[0];
+	int G = colour[1];
+	int B = colour[2];
+	Serial.println("Setting Colour to: ");
+	Serial.print("R: ");
+	Serial.println(R);
+	Serial.print("G: ");
+	Serial.println(G);
+	Serial.print("B: ");
+	Serial.println(B);
 
+
+	for (int n = 0; n < NUM_LEDS; n++)
+	{
 		strip.setPixelColor(n, R, G, B);
 		strip.show();
 	}
 }
 
-void chooseProgram()
+int chooseProgram(void)
 {
 	Serial.println("Available programs:");
 	Serial.println("1. Simple Colour Changer");
@@ -137,7 +126,7 @@ void chooseProgram()
 	while (Serial.available() == 0)
 	{
 
-		program = Serial.parseInt();
+		int program = Serial.parseInt();
 
 		if (program > 0)
 		{
@@ -145,7 +134,7 @@ void chooseProgram()
 			Serial.print(program);
 			Serial.print("...");
 			delay(2000);
-			break;
+			return program;
 		}
 	}
 }
@@ -183,27 +172,28 @@ uint32_t Wheel(byte WheelPos)
 	return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
-String getInput(void)
+int getInput(void)
 {
+	byte index = 0;
 	Serial.flush(); //flush all previous received and transmitted data
+	resetString(inString);
 	while (!Serial.available()); // hang program until a byte is received notice the ; after the while()
 	{}
 
-	for (i = 0; i < 19; i++)
+	for (int i = 0; i < 19; i++)
 	{
 		inChar = Serial.read(); // Read a character
 		inString[index] = inChar; // Store it
 		index++;
 		inString[index] = '\0'; // Null terminate the string
-		Serial.println(inChar);
-
+		/*Serial.println(inChar);
 		Serial.print("I received: ");
-		Serial.println(inString);
+		Serial.println(inString);*/
 		delay(10);
 		if (Serial.available() == 0)
 			break;
 	}
-	return inString;
+	return 0;
 }
 
 void resetString(String x)
@@ -211,4 +201,62 @@ void resetString(String x)
 	memset(&x, 0, sizeof(x));
 }
 
-//checkExit
+int checkWords(char x[])
+{
+	char exitString[] = "exit";
+	char bString[] = "brightness";
+	if (strcmp(x, exitString) == 0)
+	{
+		return 1;
+	}
+	else if (strcmp(x, bString) == 0)
+	{
+		return 2;
+	}
+	else
+	{
+		return 0;
+	}
+}
+int * parseInt(char x[])
+{
+	int i = 1; // Counter
+	char RChar[10], GChar[10], BChar[10]; // 3 Colour Char Arrays
+	String numbers[3];
+
+	String n = strtok(x, " "); // Splitting char array (x) into tokens
+	numbers[0] = n; // Add it to String array
+	//Serial.println(numbers[0]);
+	n = strtok(NULL, " "); // Doing the same for the final 2 numbers
+	numbers[1] = n;
+
+	n = strtok(NULL, " "); // Doing the same for the final 2 numbers
+	numbers[2] = n;
+
+	// Converting from String to char
+	strcpy(RChar, numbers[0].c_str());
+	strcpy(GChar, numbers[1].c_str());
+	strcpy(BChar, numbers[2].c_str());
+	// Converting from char to int and putting in colour array
+	/*Serial.println("Characters: ");
+	Serial.println(RChar);
+	Serial.println(GChar);
+	Serial.println(BChar);*/
+	colour[0] = atoi(RChar);
+	colour[1] = atoi(GChar);
+	colour[2] = atoi(BChar);
+	return colour; // Pass the array back to main function for colour change
+}
+
+
+
+// Did use this in parseInt however it was getting stuck inside the while loop, so due to it only being 3 
+// words I ditched it. 
+	//while (n != NULL)
+	//{
+	//	Serial.print("I have received: ");
+	//	n = strtok(NULL, " "); // Doing the same for the final 2 numbers
+	//	numbers[i] = n;
+	//	Serial.println(numbers[i]);
+	//	i++;
+	//}
