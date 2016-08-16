@@ -10,7 +10,8 @@ int colour[3];
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
 
-void setup() {
+void setup() 
+{
 
 	Serial.begin(9600);
 	Serial.println("Starting...");
@@ -23,7 +24,8 @@ void setup() {
 	}
 }
 
-void loop() {
+void loop() 
+{
 
 	int program = chooseProgram();
 	int stop = 0;
@@ -35,27 +37,33 @@ void loop() {
 		while (stop == 0)
 		{
 			getInput();
-			if (checkWords(inString) == 1)
+			int brightness;
+			switch (checkWords(inString))
 			{
+			case 1:
+
 				Serial.println("I should stop now...");
 				stop = 1;
 				break;
-			}
-			else if (checkWords(inString) == 2)
-			{
+
+			case 2:
+
 				Serial.print("Input brightness value (0-255): ");
 				while (!Serial.available()); // hang program until a byte is received notice the ; after the while()
 				{}
-				int brightness = Serial.parseInt();
+				brightness = Serial.parseInt();
 				Serial.print("Setting brightness to: ");
 				Serial.println(brightness);
 				strip.setBrightness(brightness);
 				strip.show();
-			}
-			else 
-			{
+				break;
+
+			default:
+
 				parseInt(inString);
 				changeColour(colour);
+				break;
+
 			}
 		}
 		break;
