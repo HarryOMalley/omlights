@@ -4,7 +4,7 @@
 #define PIN 6
 #define NUM_LEDS 300
 
-char input[20], inChar;
+char input[20], inChar, checkExit[] = "exit";
 byte index = 0;
 String end;
 int n, i, R, G, B, program, stop = 0, colour[3], red, green, blue;
@@ -17,63 +17,127 @@ void setup() {
 	strip.begin();
 	for (n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, 100, 100, 100);
+		strip.setPixelColor(n, 10, 10, 10);
 	}
 	strip.show();
 	// Initialize all pixels to 'off'
 	//chooseProgram();
 }
 void loop() {
-	//index = 0;
-	//memset(&input, 0, sizeof(input));
-	while (Serial.available() > 0) // Only read when there is data available
+
+	Serial.flush(); //flush all previous received and transmitted data
+	while (!Serial.available()); // hang program until a byte is received notice the ; after the while()
+	{}
+
+	for (i = 0; i < 19; i++)
 	{
 		inChar = Serial.read(); // Read a character
 		input[index] = inChar; // Store it
-		index++; // Increment where to write next
+		index++;
 		input[index] = '\0'; // Null terminate the string
-		//Serial.println(input);
-		//Serial.println("1");
+		Serial.println(inChar);
+
 		Serial.print("I received: ");
 		Serial.println(input);
+		delay(10);
+		if (Serial.available() == 0)
+			break;
 	}
-	R = Wheel(i);
-	i++;
-	//Serial.print(i);
-	//Serial.print(" = ");
-	Serial.println(R);
-	delay(100);
-	if (i > 255)
-		i = 0;
-	//while (stop == 0)
-		//{
-		//	rainbowCycle(3);
-		//	if (Serial.available())
-		//	{
-		//		end = Serial.readStringUntil('\n');
-		//		//exit.concat(R);
-		//		if (end == "exit")
-		//		{
-		//			stop = 1;
-		//			break;
-		//		}
-		//		else;
-		//	}
-		//}
+	
+	if (strcmp(input, checkExit) != 0)
+		chooseProgram();
+	
+	
+	memset(&input, 0, sizeof(input));
+	index = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+	//memset(&input, 0, sizeof(input));
+	//while (Serial.available() > 0) // Only read when there is data available
+	//{
+	//	
+	//	//for (i = 0; i < 19; i++)
+	//	//{
+	//		inChar = Serial.read(); // Read a character
+	//		input[index] = inChar; // Store it
+	//		index++;
+	//		input[index] = '\0'; // Null terminate the string
+	//		Serial.println(inChar);
+	//		
+	//		Serial.print("I received: ");
+	//		Serial.println(input);
+
+	//}
+
+
+
+
+
+	/*if (Serial.available() == 0)
+			{
+				index = 0;
+				memset(&input, 0, sizeof(input));
+			}
+			Serial.print("I received: ");
+			Serial.println(input);*/
+			//Serial.print("I received: ");
+			//Serial.println(input);
+
+
+
+		//R = Wheel(i);   // Used to observe values when input into Wheel();
+		//i++;
+		////Serial.print(i);
+		////Serial.print(" = ");
+		//Serial.println(R);
+		//delay(100);
+		//if (i > 255)
+		//	i = 0;
+
+
+
+
+
 
 		//while (stop == 0)
-		//{
-		//	for (red = 0; red <= 255; red++) {
-		//		for (green = 0; green <= 255; green++) {
-		//			for (blue = 0; blue <= 255; blue++) {
-		//				colour[0] = red;
-		//				colour[1] = green;
-		//				colour[2] = blue;
-		//				changeColour(colour);
-		//			}
-		//		}
-		//	}
-		//}
+			//{
+			//	rainbowCycle(3);
+			//	if (Serial.available())
+			//	{
+			//		end = Serial.readStringUntil('\n');
+			//		//exit.concat(R);
+			//		if (end == "exit")
+			//		{
+			//			stop = 1;
+			//			break;
+			//		}
+			//		else;
+			//	}
+			//}
+
+			//while (stop == 0)
+			//{
+			//	for (red = 0; red <= 255; red++) {
+			//		for (green = 0; green <= 255; green++) {
+			//			for (blue = 0; blue <= 255; blue++) {
+			//				colour[0] = red;
+			//				colour[1] = green;
+			//				colour[2] = blue;
+			//				changeColour(colour);
+			//			}
+			//		}
+			//	}
+			//}
 }
 
 void changeColour(int colour[3])
