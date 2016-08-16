@@ -1,8 +1,11 @@
+#include "Functions.h"
 #include <Adafruit_NeoPixel.h>
 #define PIN 6
 #define NUM_LEDS 300
 char R;
-String end;
+char inString[20], inChar, exitString[] = "exit";
+byte index = 0;
+String programString;
 int n, i, G, B, program, stop = 0, colour[3], red, green, blue;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
@@ -16,11 +19,21 @@ void setup() {
 		strip.setPixelColor(n, 20, 20, 20);
 		strip.show();
 	}
-	// Initialize all pixels to 'off'
 	chooseProgram();
 }
 
 void loop() {
+	index = 0;
+	getInput();
+
+
+	if (strcmp(inString, exitString) == 0)
+		chooseProgram();
+	programString = inString;
+	Serial.println(programString);
+	Serial.println(programString.toInt());
+	
+	resetString(inString);
 
 	switch (program)
 	{
@@ -100,6 +113,7 @@ void loop() {
 		break;
 	}
 }
+
 void changeColour(int colour[3])
 {
 	R = colour[0];
@@ -112,15 +126,7 @@ void changeColour(int colour[3])
 		strip.show();
 	}
 }
-/* send data only when you receive data:
-if (Serial.available() > 0) {
-// read the incoming byte:
-incomingByte = Serial.parseInt();
 
-// say what you got:
-Serial.print("I received: ");
-Serial.println(incomingByte, DEC);
-} */
 void chooseProgram()
 {
 	Serial.println("Available programs:");
@@ -176,3 +182,33 @@ uint32_t Wheel(byte WheelPos)
 	WheelPos -= 170;
 	return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
+
+String getInput(void)
+{
+	Serial.flush(); //flush all previous received and transmitted data
+	while (!Serial.available()); // hang program until a byte is received notice the ; after the while()
+	{}
+
+	for (i = 0; i < 19; i++)
+	{
+		inChar = Serial.read(); // Read a character
+		inString[index] = inChar; // Store it
+		index++;
+		inString[index] = '\0'; // Null terminate the string
+		Serial.println(inChar);
+
+		Serial.print("I received: ");
+		Serial.println(inString);
+		delay(10);
+		if (Serial.available() == 0)
+			break;
+	}
+	return inString;
+}
+
+void resetString(String x)
+{
+	memset(&x, 0, sizeof(x));
+}
+
+//checkExit
