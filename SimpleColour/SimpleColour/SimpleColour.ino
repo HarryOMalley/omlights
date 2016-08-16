@@ -1,12 +1,14 @@
 #include <Adafruit_NeoPixel.h>
 #include <stdio.h>
 #include <string.h>
+
 #define PIN 6
 #define NUM_LEDS 300
 
-char input[20], inChar, checkExit[] = "exit";
+char input[20], inChar, checkExit[] = "exit", RChar[20], GChar[20], BChar[20];
 byte index = 0;
 String programSelect;
+String numbers[20], test;
 int n, i, R, G, B, program, stop = 0, colour[3], red, green, blue;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
@@ -47,8 +49,39 @@ void loop() {
 	if (strcmp(input, checkExit) == 0)
 		chooseProgram();
 	programSelect = input;
-	Serial.println(programSelect);
-	Serial.println(programSelect.toInt());
+	test = strtok(input, " ");
+	numbers[0] = test;
+	i = 1;
+	while (test != NULL)
+	{
+		test = strtok(NULL, " ");
+		numbers[i] = test;
+		i++;
+	}
+
+	strcpy(RChar, numbers[0].c_str());
+	strcpy(GChar, numbers[1].c_str());
+	strcpy(BChar, numbers[2].c_str());
+
+	R = atoi(RChar);
+	G = atoi(GChar);
+	B = atoi(BChar);
+
+	colour[0] = R;
+	colour[1] = G;
+	colour[2] = B;
+
+	Serial.print("Here:");
+	Serial.println(R);
+	Serial.println(G);
+	Serial.println(B);
+
+	changeColour(colour);
+
+
+	//Serial.println(programSelect);
+
+	//Serial.println(programSelect.toInt());
 	
 	memset(&input, 0, sizeof(input));
 	index = 0;
