@@ -266,7 +266,7 @@ void resetString(String x)
 	memset(&x, 0, sizeof(x));
 }
 
-int checkWords(char x[])
+int checkWords(char x[]) // Checks if there are any keywords in input
 {
 	char exitString[] = "exit";
 	char aString[] = "brightness";
