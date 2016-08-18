@@ -263,7 +263,7 @@ int getInput(void)
 
 void resetString(String x)
 {
-	memset(&x, 0, sizeof(x));
+	memset(&x, 0, sizeof(x)); // Clears all data in a Char String
 }
 
 int checkWords(char x[]) // Checks if there are any keywords in input
@@ -296,64 +296,8 @@ int checkWords(char x[]) // Checks if there are any keywords in input
 			Serial.println(wordList[i].num);
 		}
 	}
-	return 0;
-	/* handle no-match case here */
+	return 0; // If none match, return 0
 
-	/*char exitString[] = "exit";
-	char aString[] = "brightness";
-	char bString[] = "red";
-	char cString[] = "green";
-	char dString[] = "blue";
-	char eString[] = "yellow";
-	char fString[] = "purple";
-	char gString[] = "cyan";
-	char hString[] = "gold";
-	char iString[] = "orange";
-
-	if (strcmp(x, exitString) == 0)
-	{
-		return 1;
-	}
-	else if (strcmp(x, aString) == 0)
-	{
-		return 2;
-	}
-	else if (strcmp(x, bString) == 0)
-	{
-		return 3;
-	}
-	else if (strcmp(x, cString) == 0)
-	{
-		return 4;
-	}
-	else if (strcmp(x, dString) == 0)
-	{
-		return 5;
-	}
-	else if (strcmp(x, eString) == 0)
-	{
-		return 6;
-	}
-	else if (strcmp(x, fString) == 0)
-	{
-		return 7;
-	}
-	else if (strcmp(x, gString) == 0)
-	{
-		return 8;
-	}
-	else if (strcmp(x, hString) == 0)
-	{
-		return 9;
-	}
-	else if (strcmp(x, iString) == 0)
-	{
-		return 10;
-	}
-	else
-	{
-		return 0;
-	} */
 }
 int * parseInt(char x[])
 {
@@ -385,15 +329,75 @@ int * parseInt(char x[])
 	return colour; // Pass the array back to main function for colour change
 }
 
+// Junk code no longer in use :'(
 
+/*
 
-// Did use this in parseInt however it was getting stuck inside the while loop, so due to it only being 3 
-// words I ditched it. 
-	//while (n != NULL)
-	//{
-	//	Serial.print("I have received: ");
-	//	n = strtok(NULL, " "); // Doing the same for the final 2 numbers
-	//	numbers[i] = n;
-	//	Serial.println(numbers[i]);
-	//	i++;
-	//}
+Did use this in parseInt however it was getting stuck inside the while loop, so due to it only being 3 
+ words I ditched it. 
+	while (n != NULL)
+	{
+		Serial.print("I have received: ");
+		n = strtok(NULL, " "); // Doing the same for the final 2 numbers
+		numbers[i] = n;
+		Serial.println(numbers[i]);
+		i++;
+	}
+
+	/* handle no-match case here */
+
+	/*char exitString[] = "exit";
+	char aString[] = "brightness";
+	char bString[] = "red";
+	char cString[] = "green";
+	char dString[] = "blue";
+	char eString[] = "yellow";
+	char fString[] = "purple";
+	char gString[] = "cyan";
+	char hString[] = "gold";
+	char iString[] = "orange";
+
+	if (strcmp(x, exitString) == 0)
+	{
+	return 1;
+	}
+	else if (strcmp(x, aString) == 0)
+	{
+	return 2;
+	}
+	else if (strcmp(x, bString) == 0)
+	{
+	return 3;
+	}
+	else if (strcmp(x, cString) == 0)
+	{
+	return 4;
+	}
+	else if (strcmp(x, dString) == 0)
+	{
+	return 5;
+	}
+	else if (strcmp(x, eString) == 0)
+	{
+	return 6;
+	}
+	else if (strcmp(x, fString) == 0)
+	{
+	return 7;
+	}
+	else if (strcmp(x, gString) == 0)
+	{
+	return 8;
+	}
+	else if (strcmp(x, hString) == 0)
+	{
+	return 9;
+	}
+	else if (strcmp(x, iString) == 0)
+	{
+	return 10;
+	}
+	else
+	{
+	return 0;
+	} */
