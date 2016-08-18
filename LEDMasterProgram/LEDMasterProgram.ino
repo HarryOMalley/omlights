@@ -268,7 +268,38 @@ void resetString(String x)
 
 int checkWords(char x[]) // Checks if there are any keywords in input
 {
-	char exitString[] = "exit";
+	struct strWords 
+	{
+		char *str;
+		int num;
+	};
+
+	const struct strWords wordList[] = 
+	{
+		{ "exit", 1 },
+		{ "brightness", 2 },
+		{ "red", 3 },
+		{ "green", 4 },
+		{ "blue", 5 },
+		{ "yellow", 6 },
+		{ "purple", 7 },
+		{ "cyan", 8 },
+		{ "gold", 9 },
+		{ "orange", 10 },
+		{ NULL, 0 }  /* end marker */
+	};
+
+	int i;
+	for (i = 0; wordList[i].str != NULL; i++) {
+		if (strcmp(x, wordList[i].str) == 0) {
+			return wordList[i].num;
+			Serial.println(wordList[i].num);
+		}
+	}
+	return 0;
+	/* handle no-match case here */
+
+	/*char exitString[] = "exit";
 	char aString[] = "brightness";
 	char bString[] = "red";
 	char cString[] = "green";
@@ -322,7 +353,7 @@ int checkWords(char x[]) // Checks if there are any keywords in input
 	else
 	{
 		return 0;
-	}
+	} */
 }
 int * parseInt(char x[])
 {
