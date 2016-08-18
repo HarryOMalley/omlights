@@ -11,7 +11,7 @@ int colour[3];
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
 
-void setup() 
+void setup()
 {
 
 	Serial.begin(9600);
@@ -21,12 +21,12 @@ void setup()
 	uint32_t red = strip.Color(255, 0, 0), green = strip.Color(0, 255, 0), blue = strip.Color(0, 0, 255), purple = strip.Color(255, 0, 255), cyan = strip.Color(0, 255, 255), yellow = strip.Color(255, 255, 0), gold = strip.Color(255, 200, 0);
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, 20, 20, 20);
-		strip.show();
-	}
-}
+		strip.setPixelColor(n, 0, 0, 0);
 
-void loop() 
+	}
+	strip.show();
+}
+void loop()
 {
 
 	int program = chooseProgram();
@@ -108,7 +108,25 @@ void loop()
 				colour[2] = 0;
 				changeColour(colour);
 				break;
-			
+			case 11:
+				colour[0] = 255;
+				colour[1] = 255;
+				colour[2] = 255;
+				changeColour(colour);
+				break;
+			case 12:
+				colour[0] = 255;
+				colour[1] = 0;
+				colour[2] = 80;
+				changeColour(colour);
+				break;
+			case 13:
+				colour[0] = 0;
+				colour[1] = 255;
+				colour[2] = 50;
+				changeColour(colour);
+				break;
+
 			default:
 
 				parseInt(inString);
@@ -185,10 +203,10 @@ int chooseProgram(void)
 
 		if (program > 0)
 		{
-			Serial.print("Launching Program ");
+			Serial.print("\nLaunching Program ");
 			Serial.print(program);
 			Serial.print("...");
-			delay(2000);
+			delay(200);
 			return program;
 		}
 	}
@@ -268,13 +286,13 @@ void resetString(String x)
 
 int checkWords(char x[]) // Checks if there are any keywords in input
 {
-	struct strWords 
+	struct strWords
 	{
 		char *str;
 		int num;
 	};
 
-	const struct strWords wordList[] = 
+	const struct strWords wordList[] =
 	{
 		{ "exit", 1 },
 		{ "brightness", 2 },
@@ -286,6 +304,9 @@ int checkWords(char x[]) // Checks if there are any keywords in input
 		{ "cyan", 8 },
 		{ "gold", 9 },
 		{ "orange", 10 },
+		{ "white", 11 },
+		{ "pink", 12},
+		{ "lime", 13},
 		{ NULL, 0 }  /* end marker */
 	};
 
@@ -333,8 +354,8 @@ int * parseInt(char x[])
 
 /*
 
-Did use this in parseInt however it was getting stuck inside the while loop, so due to it only being 3 
- words I ditched it. 
+Did use this in parseInt however it was getting stuck inside the while loop, so due to it only being 3
+ words I ditched it.
 	while (n != NULL)
 	{
 		Serial.print("I have received: ");
