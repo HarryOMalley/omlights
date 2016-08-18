@@ -4,6 +4,7 @@
 #define NUM_LEDS 300
 char inString[20], inChar, exitString[] = "exit";
 
+
 String programString;
 int colour[3];
 
@@ -17,6 +18,7 @@ void setup()
 	Serial.println("Starting...");
 	strip.begin();
 	strip.setBrightness(255);
+	uint32_t red = strip.Color(255, 0, 0), green = strip.Color(0, 255, 0), blue = strip.Color(0, 0, 255), purple = strip.Color(255, 0, 255), cyan = strip.Color(0, 255, 255), yellow = strip.Color(255, 255, 0), gold = strip.Color(255, 200, 0);
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
 		strip.setPixelColor(n, 20, 20, 20);
@@ -58,6 +60,55 @@ void loop()
 				strip.show();
 				break;
 
+			case 3:
+				colour[0] = 255;
+				colour[1] = 0;
+				colour[2] = 0;
+				changeColour(colour);
+				break;
+			case 4:
+				colour[0] = 0;
+				colour[1] = 255;
+				colour[2] = 0;
+				changeColour(colour);
+				break;
+			case 5:
+				colour[0] = 0;
+				colour[1] = 0;
+				colour[2] = 255;
+				changeColour(colour);
+				break;
+			case 6:
+				colour[0] = 255;
+				colour[1] = 255;
+				colour[2] = 0;
+				changeColour(colour);
+				break;
+			case 7:
+				colour[0] = 255;
+				colour[1] = 0;
+				colour[2] = 255;
+				changeColour(colour);
+				break;
+			case 8:
+				colour[0] = 0;
+				colour[1] = 255;
+				colour[2] = 255;
+				changeColour(colour);
+				break;
+			case 9:
+				colour[0] = 255;
+				colour[1] = 120;
+				colour[2] = 0;
+				changeColour(colour);
+				break;
+			case 10:
+				colour[0] = 255;
+				colour[1] = 50;
+				colour[2] = 0;
+				changeColour(colour);
+				break;
+			
 			default:
 
 				parseInt(inString);
@@ -144,8 +195,8 @@ int chooseProgram(void)
 }
 int rainbowCycle(uint8_t wait) {
 	uint16_t i, j;
-	uint16_t randnum[strip.numPixels()];
-	for (i = 0; i < strip.numPixels(); i++)
+	uint16_t randnum[NUM_LEDS];
+	for (i = 0; i < NUM_LEDS; i++)
 	{
 		randnum[i] = random(256);
 	}
@@ -153,9 +204,9 @@ int rainbowCycle(uint8_t wait) {
 	{
 		for (j = 0; j < 256 * 100; j++)
 		{ // 5 cycles of all colors on wheel - i think this just makes it do it over and over
-			for (i = 0; i < strip.numPixels(); i++)
+			for (i = 0; i < NUM_LEDS; i++)
 			{
-				strip.setPixelColor(i, Wheel(((randnum[i] * 256 / strip.numPixels()) + j) & 255));
+				strip.setPixelColor(i, Wheel(((randnum[i] * 256 / NUM_LEDS) + j) & 255));
 			}
 			strip.show();
 			delay(wait);
@@ -215,17 +266,58 @@ void resetString(String x)
 	memset(&x, 0, sizeof(x));
 }
 
-int checkWords(char x[])
+int checkWords(char x[]) // Checks if there are any keywords in input
 {
 	char exitString[] = "exit";
-	char bString[] = "brightness";
+	char aString[] = "brightness";
+	char bString[] = "red";
+	char cString[] = "green";
+	char dString[] = "blue";
+	char eString[] = "yellow";
+	char fString[] = "purple";
+	char gString[] = "cyan";
+	char hString[] = "gold";
+	char iString[] = "orange";
+
 	if (strcmp(x, exitString) == 0)
 	{
 		return 1;
 	}
-	else if (strcmp(x, bString) == 0)
+	else if (strcmp(x, aString) == 0)
 	{
 		return 2;
+	}
+	else if (strcmp(x, bString) == 0)
+	{
+		return 3;
+	}
+	else if (strcmp(x, cString) == 0)
+	{
+		return 4;
+	}
+	else if (strcmp(x, dString) == 0)
+	{
+		return 5;
+	}
+	else if (strcmp(x, eString) == 0)
+	{
+		return 6;
+	}
+	else if (strcmp(x, fString) == 0)
+	{
+		return 7;
+	}
+	else if (strcmp(x, gString) == 0)
+	{
+		return 8;
+	}
+	else if (strcmp(x, hString) == 0)
+	{
+		return 9;
+	}
+	else if (strcmp(x, iString) == 0)
+	{
+		return 10;
 	}
 	else
 	{
