@@ -21,10 +21,10 @@ void setup()
 	uint32_t red = strip.Color(255, 0, 0), green = strip.Color(0, 255, 0), blue = strip.Color(0, 0, 255), purple = strip.Color(255, 0, 255), cyan = strip.Color(0, 255, 255), yellow = strip.Color(255, 255, 0), gold = strip.Color(255, 200, 0);
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, 0, 0, 0);
-
+		strip.setPixelColor(n, 10, 10, 10);
+		strip.show();
 	}
-	strip.show();
+	
 }
 void loop()
 {
