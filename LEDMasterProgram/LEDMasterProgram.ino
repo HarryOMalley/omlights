@@ -220,7 +220,7 @@ int rainbowCycle(uint8_t wait) {
 	}
 	while (true)
 	{
-		for (j = 0; j < 256 * 100; j++)
+		for (j = 0; j < 256 * 5; j++)
 		{ // 5 cycles of all colors on wheel - i think this just makes it do it over and over
 			for (i = 0; i < NUM_LEDS; i++)
 			{
