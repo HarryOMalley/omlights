@@ -1,4 +1,5 @@
 #include <Adafruit_NeoPixel.h>
+#include <stdio.h>
 #define PIN 7
 #define NUM_LEDS 300
 char inString[20], inChar, exitString[] = "exit";
@@ -23,33 +24,28 @@ void setup()
 		strip.setPixelColor(n, 10, 10, 10);
 		strip.show();
 	}
-	
+
 }
 void loop()
 {
-	//int x = 1536 / NUM_LEDS;
-	//int y = 0;
+	int x = 1536 / NUM_LEDS;
+	int y = 0, PixelColour[NUM_LEDS];
+	int j = 0;
+	for (int i = 0; i < NUM_LEDS; i++)
+	{
+		PixelColour[i] = j;
+		j = j + x;
+	}
 
-	//if (y < 256)
-	//{
-	//	R = 255;
-	//	G = y;
-	//	B = 0;
-	//}
-	//else if (y < 512 & y > 255)
-	//{
-	//	R = 511 - y;
-	//	G = 255;
-	//	B = 0;
-	//}
-	//else if (y < 768);
+
 	
+
 
 	uint32_t A = Wheel(z);
 	Serial.println(z);
 	Serial.println(A);
 
-	
+
 	B = A & 255;
 	Serial.println(B);
 	Serial.println("\n\n");
@@ -101,4 +97,41 @@ int rainbowCycle(uint8_t wait) {
 			}
 		}
 	}
+}
+
+uint32_t colourCalc(uint16_t wheelPos)
+{
+
+	if (wheelPos < 256)
+	{
+		return strip.Color(255, wheelPos, 0);
+
+	}
+	else if (wheelPos < 512 & wheelPos > 255)
+	{
+		return strip.Color(511 - wheelPos, 255, 0);
+
+	}
+	else if (wheelPos < 768 & wheelPos > 511)
+	{
+		return strip.Color(0, 255, wheelPos - 511);
+
+	}
+	else if (wheelPos < 1024 & wheelPos > 767)
+	{
+		return strip.Color(0, 1023 - wheelPos, 255);
+
+	}
+	else if (wheelPos < 1280 & wheelPos > 1023)
+	{
+		return strip.Color(wheelPos - 1023, 0, 255);
+
+	}
+	else if (wheelPos < 1536 & wheelPos > 1279)
+	{
+		return strip.Color(255, 0, 1537 - wheelPos);
+
+	}
+	else
+		return 1;
 }
