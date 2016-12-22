@@ -1,6 +1,6 @@
 #include "Functions.h"
 #include <Adafruit_NeoPixel.h>
-#define PIN 6
+#define PIN 7
 #define NUM_LEDS 300
 char inString[20], inChar, exitString[] = "exit";
 
@@ -14,14 +14,14 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800)
 void setup()
 {
 
-	Serial.begin(9600);
+	Serial.begin(57600);
 	Serial.println("Starting...");
 	strip.begin();
 	strip.setBrightness(255);
 	uint32_t red = strip.Color(255, 0, 0), green = strip.Color(0, 255, 0), blue = strip.Color(0, 0, 255), purple = strip.Color(255, 0, 255), cyan = strip.Color(0, 255, 255), yellow = strip.Color(255, 255, 0), gold = strip.Color(255, 200, 0);
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, 10, 10, 10);
+		strip.setPixelColor(n, 100,100,100);
 		strip.show();
 	}
 	
@@ -126,7 +126,10 @@ void loop()
 				colour[2] = 50;
 				changeColour(colour);
 				break;
-
+			case 14:
+				colour[0] = 0;
+				colour[1] = 255;
+				colour[2] = 50;
 			default:
 
 				parseInt(inString);
@@ -139,7 +142,7 @@ void loop()
 	case 2:
 		while (stop == 0)
 		{
-			rainbowCycle(3);
+			rainbowCycle(4);
 			break;
 		}
 		break;
