@@ -1,4 +1,3 @@
-#include "Functions.h"
 #include <Adafruit_NeoPixel.h>
 #define PIN 7
 #define NUM_LEDS 300
@@ -6,9 +5,9 @@ char inString[20], inChar, exitString[] = "exit";
 
 
 String programString;
-int colour[3];
+int colour[4];
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRBW + NEO_KHZ800);
 
 
 void setup()
@@ -21,7 +20,7 @@ void setup()
 	uint32_t red = strip.Color(255, 0, 0), green = strip.Color(0, 255, 0), blue = strip.Color(0, 0, 255), purple = strip.Color(255, 0, 255), cyan = strip.Color(0, 255, 255), yellow = strip.Color(255, 255, 0), gold = strip.Color(255, 200, 0);
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, 100, 100, 100);
+		strip.setPixelColor(n, 0, 0, 0, 255);
 		strip.show();
 	}
 
@@ -64,72 +63,92 @@ void loop()
 				colour[0] = 255;
 				colour[1] = 0;
 				colour[2] = 0;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 4:
 				colour[0] = 0;
 				colour[1] = 255;
 				colour[2] = 0;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 5:
 				colour[0] = 0;
 				colour[1] = 0;
 				colour[2] = 255;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 6:
 				colour[0] = 255;
 				colour[1] = 255;
 				colour[2] = 0;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 7:
 				colour[0] = 255;
 				colour[1] = 0;
 				colour[2] = 255;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 8:
 				colour[0] = 0;
 				colour[1] = 255;
 				colour[2] = 255;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 9:
 				colour[0] = 255;
 				colour[1] = 120;
 				colour[2] = 0;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 10:
 				colour[0] = 255;
 				colour[1] = 50;
 				colour[2] = 0;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 11:
 				colour[0] = 255;
 				colour[1] = 255;
 				colour[2] = 255;
+				colour[3] = 255;
 				changeColour(colour);
 				break;
 			case 12:
 				colour[0] = 255;
 				colour[1] = 0;
 				colour[2] = 80;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 13:
 				colour[0] = 0;
 				colour[1] = 255;
 				colour[2] = 50;
+				colour[3] = 0;
 				changeColour(colour);
 				break;
 			case 14:
 				colour[0] = 0;
-				colour[1] = 255;
-				colour[2] = 50;
+				colour[1] = 0;
+				colour[2] = 0;
+				colour[3] = 255;
+				changeColour(colour);
+			case 15:
+				colour[0] = 100;
+				colour[1] = 0;
+				colour[2] = 0;
+				colour[3] = 255;
+				changeColour(colour);
+
 			default:
 
 				parseInt(inString);
@@ -176,6 +195,7 @@ void changeColour(int colour[3])
 	int R = colour[0];
 	int G = colour[1];
 	int B = colour[2];
+	int W = colour[3];
 	Serial.println("Setting Colour to: ");
 	Serial.print("R: ");
 	Serial.println(R);
@@ -183,11 +203,14 @@ void changeColour(int colour[3])
 	Serial.println(G);
 	Serial.print("B: ");
 	Serial.println(B);
+	Serial.print("W: ");
+	Serial.println(W);
+
 
 
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, R, G, B);
+		strip.setPixelColor(n, R, G, B, W);
 		strip.show();
 	}
 }
@@ -310,6 +333,8 @@ int checkWords(char x[]) // Checks if there are any keywords in input
 		{ "white", 11 },
 		{ "pink", 12 },
 		{ "lime", 13 },
+		{ "natural", 14},
+		{ "nice", 15},
 		{ NULL, 0 }  /* end marker */
 	};
 
@@ -326,22 +351,28 @@ int checkWords(char x[]) // Checks if there are any keywords in input
 int * parseInt(char x[])
 {
 	int i = 1; // Counter
-	char RChar[10], GChar[10], BChar[10]; // 3 Colour Char Arrays
-	String numbers[3];
+	char RChar[10], GChar[10], BChar[10], WChar[10]; // 3 Colour Char Arrays
+	String numbers[4];
 
-	String n = strtok(x, " "); // Splitting char array (x) into tokens
+	String n = strtok(x, " "); // Splitting char array (x) into tokens between spaces
 	numbers[0] = n; // Add it to String array
 					//Serial.println(numbers[0]);
-	n = strtok(NULL, " "); // Doing the same for the final 2 numbers
+	n = strtok(NULL, " "); // Doing the same for the final 3 numbers
 	numbers[1] = n;
 
-	n = strtok(NULL, " "); // Doing the same for the final 2 numbers
+	n = strtok(NULL, " "); // Doing the same for the final 3 numbers
 	numbers[2] = n;
+
+	n = strtok(NULL, " "); // Doing the same for the final 3 numbers
+	numbers[3] = n;
+
+
 
 	// Converting from String to char
 	strcpy(RChar, numbers[0].c_str());
 	strcpy(GChar, numbers[1].c_str());
 	strcpy(BChar, numbers[2].c_str());
+	strcpy(WChar, numbers[3].c_str());
 	// Converting from char to int and putting in colour array
 	/*Serial.println("Characters: ");
 	Serial.println(RChar);
@@ -350,6 +381,8 @@ int * parseInt(char x[])
 	colour[0] = atoi(RChar);
 	colour[1] = atoi(GChar);
 	colour[2] = atoi(BChar);
+	colour[3] = atoi(WChar);
+
 	return colour; // Pass the array back to main function for colour change
 }
 
