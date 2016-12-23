@@ -142,15 +142,15 @@ void loop()
 				colour[2] = 0;
 				colour[3] = 255;
 				changeColour(colour);
+				break;
 			case 15:
 				colour[0] = 100;
 				colour[1] = 0;
 				colour[2] = 0;
 				colour[3] = 255;
 				changeColour(colour);
-
+				break;
 			default:
-
 				parseInt(inString);
 				changeColour(colour);
 				break;
@@ -339,10 +339,12 @@ int checkWords(char x[]) // Checks if there are any keywords in input
 	};
 
 	int i;
-	for (i = 0; wordList[i].str != NULL; i++) {
-		if (strcmp(x, wordList[i].str) == 0) {
+	for (i = 0; wordList[i].str != NULL; i++) 
+	{
+		if (strcmp(x, wordList[i].str) == 0) 
+		{
 			return wordList[i].num;
-			Serial.println(wordList[i].num);
+			//Serial.println(wordList[i].num);
 		}
 	}
 	return 0; // If none match, return 0

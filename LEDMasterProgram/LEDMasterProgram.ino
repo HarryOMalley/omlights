@@ -29,7 +29,8 @@ void setup()
 void loop()
 {
 
-	int program = chooseProgram();
+	//int program = chooseProgram(); DISABLED TEMPORARILY
+	int program = 2;
 	int stop = 0;
 
 	switch (program)
