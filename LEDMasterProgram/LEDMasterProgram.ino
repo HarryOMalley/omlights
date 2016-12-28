@@ -22,15 +22,15 @@ void setup()
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
 		strip.setPixelColor(n, 100,100,100);
-		strip.show();
+		
 	}
-	
+	strip.show();
 }
 void loop()
 {
 
 	//int program = chooseProgram(); DISABLED TEMPORARILY
-	int program = 2;
+	int program = 4;
 	int stop = 0;
 
 	switch (program)
@@ -147,6 +147,49 @@ void loop()
 			break;
 		}
 		break;
+	case 3:
+		while (stop == 0)
+		{
+			rainbow(10);
+			break;
+		}
+		break;
+	case 4:
+		int i, j;
+		j = 0;
+		while (stop == 0)
+		{
+
+			if (j == 0)
+			{
+				for (i = 0; i < NUM_LEDS; i = i + 2)
+				{
+					strip.setPixelColor(i, 255, 0, 0);
+				}
+				for (int i = 1; i < NUM_LEDS; i = i + 2)
+				{
+					strip.setPixelColor(i, 0, 255, 0);
+				}
+				strip.show();
+				delay(1000);
+				j = 1;
+			}
+			else if (j == 1)
+			{
+				for (int i = 0; i < NUM_LEDS; i = i + 2)
+				{
+					strip.setPixelColor(i, 0, 255, 0);
+				}
+				for (int i = 1; i < NUM_LEDS; i = i + 2)
+				{
+					strip.setPixelColor(i, 255, 0, 0);
+				}
+				strip.show();
+				delay(1000);
+				j = 0;
+			}
+
+		}
 	default:
 		Serial.println("Error: Invalid number entered. Please reselect...");
 		delay(500);
@@ -352,6 +395,25 @@ int * parseInt(char x[])
 	colour[1] = atoi(GChar);
 	colour[2] = atoi(BChar);
 	return colour; // Pass the array back to main function for colour change
+}
+int rainbow(uint8_t wait) {
+	uint16_t i, j;
+
+	for (j = 0; j<256; j++) {
+		for (i = 0; i<strip.numPixels(); i++) {
+			strip.setPixelColor(i, Wheel((i + j) & 255));
+		}
+		strip.show();
+		delay(wait);
+		if (Serial.available() > 0)
+		{
+			getInput();
+			if (checkWords(inString) == 1)
+			{
+				return 0;
+			}
+		}
+	}
 }
 
 // Junk code no longer in use :'(

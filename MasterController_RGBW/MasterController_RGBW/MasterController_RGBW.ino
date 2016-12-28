@@ -13,7 +13,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRBW + NEO_KHZ800
 void setup()
 {
 
-	Serial.begin(57600);
+	Serial.begin(9600);
 	Serial.println("Starting...");
 	strip.begin();
 	strip.setBrightness(255);
@@ -21,9 +21,9 @@ void setup()
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
 		strip.setPixelColor(n, 0, 0, 0, 255);
-		strip.show();
-	}
 
+	}
+	strip.show();
 }
 void loop()
 {
@@ -148,6 +148,13 @@ void loop()
 				colour[1] = 0;
 				colour[2] = 0;
 				colour[3] = 255;
+				changeColour(colour);	
+				break;
+			case 16:
+				colour[0] = 10;
+				colour[1] = 10;
+				colour[2] = 90;
+				colour[3] = 255;
 				changeColour(colour);
 				break;
 			default:
@@ -163,6 +170,50 @@ void loop()
 		{
 			rainbowCycle(4);
 			break;
+		}
+		break;
+
+	case 3:
+		while (stop == 0)
+		{
+			rainbow(1);
+		}
+		break;
+	case 4:
+		int i, j;
+		j = 0;
+		while (stop == 0)
+		{
+
+			if (j == 0)
+			{
+				for (i = 0; i < NUM_LEDS; i = i + 2)
+				{
+					strip.setPixelColor(i, 255, 0, 0, 0);
+				}
+				for (int i = 1; i < NUM_LEDS; i = i + 2)
+				{
+					strip.setPixelColor(i, 0, 255, 0, 0);
+				}
+				strip.show();
+				delay(1000);
+				j = 1;
+			}
+			else if (j == 1)
+			{
+				for (int i = 0; i < NUM_LEDS; i = i + 2)
+				{
+					strip.setPixelColor(i, 0, 255, 0, 0);
+				}
+				for (int i = 1; i < NUM_LEDS; i = i + 2)
+				{
+					strip.setPixelColor(i, 255, 0, 0, 0);
+				}
+				strip.show();
+				delay(1000);
+				j = 0;
+			}
+
 		}
 		break;
 	default:
@@ -335,13 +386,14 @@ int checkWords(char x[]) // Checks if there are any keywords in input
 		{ "lime", 13 },
 		{ "natural", 14},
 		{ "nice", 15},
+		{ "bryn", 16},
 		{ NULL, 0 }  /* end marker */
 	};
 
 	int i;
-	for (i = 0; wordList[i].str != NULL; i++) 
+	for (i = 0; wordList[i].str != NULL; i++)
 	{
-		if (strcmp(x, wordList[i].str) == 0) 
+		if (strcmp(x, wordList[i].str) == 0)
 		{
 			return wordList[i].num;
 			//Serial.println(wordList[i].num);
@@ -387,6 +439,27 @@ int * parseInt(char x[])
 
 	return colour; // Pass the array back to main function for colour change
 }
+
+int rainbow(uint8_t wait) {
+	uint16_t i, j;
+
+	for (j = 0; j < 256; j++) {
+		for (i = 0; i < strip.numPixels(); i++) {
+			strip.setPixelColor(i, Wheel((i + j) & 255));
+		}
+		strip.show();
+		delay(wait);
+		if (Serial.available() > 0)
+		{
+			getInput();
+			if (checkWords(inString) == 1)
+			{
+				return 0;
+			}
+		}
+	}
+}
+
 
 // Junk code no longer in use :'(
 

@@ -8,7 +8,7 @@ char inString[20], inChar, exitString[] = "exit";
 String programString;
 int colour[3], R, G, B;
 int z = 0;
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRBW + NEO_KHZ800);
 
 
 void setup()
@@ -22,40 +22,45 @@ void setup()
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
 		strip.setPixelColor(n, 10, 10, 10);
-		strip.show();
+		
 	}
-
+strip.show();
 }
 void loop()
 {
-	int x = 1536 / NUM_LEDS;
-	int y = 0, PixelColour[NUM_LEDS];
-	int j = 0;
-	for (int i = 0; i < NUM_LEDS; i++)
+
+	int i, j;
+	j = 0;
+	//if (j == 0)
+	//{
+		for (i = 0; i < NUM_LEDS; i += 2);
+		{
+			strip.setPixelColor(i, 255, 0, 0, 0);
+			strip.show();
+		}
+		for (i = 1; i < NUM_LEDS; i + 2);
+		{
+			strip.setPixelColor(i, 0, 255, 0, 0);
+			strip.show();
+		}
+		delay(1000);
+		j = 1;
+	//}
+	if (j == 1)
 	{
-		PixelColour[i] = j;
-		j = j + x;
+		for (int i = 0; i = NUM_LEDS; i + 2);
+		{
+			strip.setPixelColor(i, 0, 255, 0, 0);
+			strip.show();
+		}
+		for (int i = 1; i = NUM_LEDS; i + 2);
+		{
+			strip.setPixelColor(i, 255, 0, 0, 0);
+			strip.show();
+		}
+		delay(1000);
+		j = 0;
 	}
-
-
-	
-
-
-	uint32_t A = Wheel(z);
-	Serial.println(z);
-	Serial.println(A);
-
-
-	B = A & 255;
-	Serial.println(B);
-	Serial.println("\n\n");
-	if (z < 255)
-	{
-		z++;
-		delay(600);
-	}
-	else if (z == 255)
-		z = 0;
 }
 uint32_t Wheel(byte WheelPos)
 {
