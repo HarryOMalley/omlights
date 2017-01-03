@@ -177,6 +177,7 @@ void loop()
 		while (stop == 0)
 		{
 			rainbow(1);
+			break;
 		}
 		break;
 	case 4:
@@ -440,26 +441,28 @@ int * parseInt(char x[])
 	return colour; // Pass the array back to main function for colour change
 }
 
-int rainbow(uint8_t wait) {
+int rainbow(uint8_t wait) 
+{
 	uint16_t i, j;
-
-	for (j = 0; j < 256; j++) {
-		for (i = 0; i < strip.numPixels(); i++) {
-			strip.setPixelColor(i, Wheel((i + j) & 255));
-		}
-		strip.show();
-		delay(wait);
-		if (Serial.available() > 0)
-		{
-			getInput();
-			if (checkWords(inString) == 1)
+	while (true)
+	{
+		for (j = 0; j < 256; j++) {
+			for (i = 0; i < strip.numPixels(); i++) {
+				strip.setPixelColor(i, Wheel((i + j) & 255));
+			}
+			strip.show();
+			delay(wait);
+			if (Serial.available() > 0)
 			{
-				return 0;
+				getInput();
+				if (checkWords(inString) == 1)
+				{
+					return 0;
+				}
 			}
 		}
 	}
 }
-
 
 // Junk code no longer in use :'(
 

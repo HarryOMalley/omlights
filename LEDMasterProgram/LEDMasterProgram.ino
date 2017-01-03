@@ -30,7 +30,7 @@ void loop()
 {
 
 	//int program = chooseProgram(); DISABLED TEMPORARILY
-	int program = 4;
+	int program = 3;
 	int stop = 0;
 
 	switch (program)
