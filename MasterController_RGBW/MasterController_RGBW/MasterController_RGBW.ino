@@ -1,6 +1,6 @@
 #include <Adafruit_NeoPixel.h>
 #define PIN 7
-#define NUM_LEDS 300
+#define NUM_LEDS 64
 char inString[20], inChar, exitString[] = "exit";
 
 
