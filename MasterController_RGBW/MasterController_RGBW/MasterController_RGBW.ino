@@ -2,7 +2,7 @@
 #define PIN 7
 #define NUM_LEDS 300
 char inString[20], inChar, exitString[] = "exit";
-
+int program ;
 
 String programString;
 int colour[4];
@@ -20,17 +20,18 @@ void setup()
 	uint32_t red = strip.Color(255, 0, 0), green = strip.Color(0, 255, 0), blue = strip.Color(0, 0, 255), purple = strip.Color(255, 0, 255), cyan = strip.Color(0, 255, 255), yellow = strip.Color(255, 255, 0), gold = strip.Color(255, 200, 0);
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, 10, 0, 0, 255);
-
+		strip.setPixelColor(n, 100, 0, 0, 255);
+		delay(1);
 	}
 	strip.show();
 }
 void loop()
 {
-
-	int program = chooseProgram();
+	strip.show();
+	
+	//int program = 3;
 	int stop = 0;
-
+	program = chooseProgram();
 	switch (program)
 	{
 	case 1:
@@ -220,7 +221,7 @@ void loop()
 	default:
 		Serial.println("Error: Invalid number entered. Please reselect...");
 		delay(500);
-		chooseProgram();
+		program = chooseProgram();
 		break;
 		/*case 3:
 		while (stop == 0)
@@ -239,7 +240,6 @@ void loop()
 		break;*/
 
 	}
-
 }
 
 void changeColour(int colour[3])
@@ -264,6 +264,7 @@ void changeColour(int colour[3])
 	{
 		strip.setPixelColor(n, R, G, B, W);
 		strip.show();
+		delay(1);
 	}
 }
 
@@ -274,9 +275,10 @@ int chooseProgram(void)
 	Serial.println("2. Flash");
 	Serial.println("3. Rainbow");
 	Serial.println("Please select desired program: ");
+	strip.show();
 	while (Serial.available() == 0)
 	{
-
+		strip.show();
 		int program = Serial.parseInt();
 
 		if (program > 0)
