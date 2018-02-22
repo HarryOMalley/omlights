@@ -1,6 +1,6 @@
 #include <Adafruit_NeoPixel.h>
 #define PIN 7
-#define NUM_LEDS 64
+#define NUM_LEDS 300
 char inString[20], inChar, exitString[] = "exit";
 int program ;
 
@@ -16,7 +16,7 @@ void setup()
 	Serial.begin(9600);
 	Serial.println("Starting...");
 	strip.begin();
-	strip.setBrightness(255);
+	strip.setBrightness(200);
 	uint32_t red = strip.Color(255, 0, 0), green = strip.Color(0, 255, 0), blue = strip.Color(0, 0, 255), purple = strip.Color(255, 0, 255), cyan = strip.Color(0, 255, 255), yellow = strip.Color(255, 255, 0), gold = strip.Color(255, 200, 0);
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
@@ -278,6 +278,7 @@ int chooseProgram(void)
 	strip.show();
 	while (Serial.available() == 0)
 	{
+		strip.begin();
 		strip.show();
 		int program = Serial.parseInt();
 
