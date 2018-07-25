@@ -12,15 +12,14 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRBW + NEO_KHZ800
 
 void setup()
 {
-
 	Serial.begin(9600);
 	Serial.println("Starting...");
 	strip.begin();
-	strip.setBrightness(200);
+	strip.setBrightness(255);
 	uint32_t red = strip.Color(255, 0, 0), green = strip.Color(0, 255, 0), blue = strip.Color(0, 0, 255), purple = strip.Color(255, 0, 255), cyan = strip.Color(0, 255, 255), yellow = strip.Color(255, 255, 0), gold = strip.Color(255, 200, 0);
 	for (int n = 0; n < NUM_LEDS; n++)
 	{
-		strip.setPixelColor(n, 100, 0, 0, 255);
+		strip.setPixelColor(n, 50, 0, 0, 150);
 		delay(1);
 	}
 	strip.show();
@@ -28,8 +27,6 @@ void setup()
 void loop()
 {
 	strip.show();
-	
-	//int program = 3;
 	int stop = 0;
 	program = chooseProgram();
 	switch (program)
@@ -169,7 +166,7 @@ void loop()
 	case 2:
 		while (stop == 0)
 		{
-			rainbowCycle(4);
+			rainbowCycle(1);
 			break;
 		}
 		break;
@@ -177,7 +174,7 @@ void loop()
 	case 3:
 		while (stop == 0)
 		{
-			rainbow(1);
+			rainbow(20);
 			break;
 		}
 		break;
@@ -423,8 +420,6 @@ int * parseInt(char x[])
 
 	n = strtok(NULL, " "); // Doing the same for the final 3 numbers
 	numbers[3] = n;
-
-
 
 	// Converting from String to char
 	strcpy(RChar, numbers[0].c_str());

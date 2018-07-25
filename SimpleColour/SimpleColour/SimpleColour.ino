@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#define PIN 6
-#define NUM_LEDS 300
+#define PIN 5
+#define NUM_LEDS 8
 
 char input[20], inChar, checkExit[] = "exit", RChar[20], GChar[20], BChar[20];
 byte index = 0;
