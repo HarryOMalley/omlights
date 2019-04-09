@@ -1,5 +1,6 @@
 #include "FastLED.h"
 #include <Bounce2.h>
+#include <EEPROM.h>
 
 #define NUM_LEDS 105
 CRGB leds[NUM_LEDS];
@@ -26,7 +27,9 @@ bool ledOn = true;
 int ledBrightness = 100; 
 int ledHue = 0;
 int mode = 1;
-
+int stateAddr = 0;
+int brightAddr = 1;
+int modeAddr = 2;
 DEFINE_GRADIENT_PALETTE(heatmap_gp) {
 	0, 255, 160, 100,   //warm white
 	128, 200, 200, 200,   //white
@@ -37,6 +40,9 @@ CRGBPalette16 whitePalette = heatmap_gp;
 
 void setup()
 {
+	ledOn = EEPROM.read(stateAddr);
+	ledBrightness = EEPROM.read(brightAddr);
+	mode = EEPROM.read(modeAddr);
 
 	FastLED.addLeds<NEOPIXEL, 7>(leds, NUM_LEDS);
 	FastLED.setBrightness(180);
@@ -107,6 +113,9 @@ void loop()
 		{
 			mode = 1;
 		}
+		EEPROM.write(modeAddr, mode);
+		EEPROM.write(brightAddr, ledBrightness);
+		EEPROM.write(stateAddr, ledOn);
 	}
 	else
 	{
@@ -132,10 +141,10 @@ void loop()
 void run(int mode)
 {
 	potVal = analogRead(potPin);
-	Serial.println(potVal);
+	//Serial.println(potVal);
 	int adjPot = map(potVal, 0, 1023, 0, 255);
-	Serial.println(adjPot);
-	Serial.println(ColorFromPalette(whitePalette, adjPot));
+	//Serial.println(adjPot);
+	//Serial.println(ColorFromPalette(whitePalette, adjPot));
 
 	switch (mode)
 	{
