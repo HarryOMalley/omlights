@@ -24,7 +24,7 @@ int buttonState3 = 0;         // variable for reading the pushbutton status
 
 // move these to eeprom
 bool ledOn = true;
-int ledBrightness = 100; 
+int ledBrightness = 120; 
 int ledHue = 0;
 int mode = 1;
 int stateAddr = 0;
@@ -36,7 +36,8 @@ DEFINE_GRADIENT_PALETTE(heatmap_gp) {
 	255, 100, 160, 255,   //cool white
 };
 CRGBPalette16 whitePalette = heatmap_gp;
-
+static const unsigned long REFRESH_INTERVAL = 2000; // ms
+static unsigned long lastRefreshTime = 0;
 
 void setup()
 {
@@ -45,18 +46,9 @@ void setup()
 	mode = EEPROM.read(modeAddr);
 
 	FastLED.addLeds<NEOPIXEL, 7>(leds, NUM_LEDS);
-	FastLED.setBrightness(180);
+	FastLED.setBrightness(ledBrightness);
 	FastLED.clear();
-	for (int led = 0; led < NUM_LEDS; led++) {
-		leds[led] = CRGB::Purple;
-	}
-	for (int i = 0; i < 35; i++) {
 
-		leds[i] %= 60;
-	}
-	for (int i = 70; i < 105; i++) {
-		leds[i] %= 60;
-	}
 
 	// initialize the LED pin as an output:
 	// pinMode(ledPin, OUTPUT);
@@ -90,15 +82,19 @@ void loop()
 	{
 		if (ledOn == true)
 		{
-			FastLED.setBrightness(0);
+			ledBrightness = 0;
+			setBrightness();
 			ledOn = false;
 			FastLED.show();
+			Serial.println("Turning off");
 		}
 		else
 		{
-			FastLED.setBrightness(ledBrightness);
+			ledBrightness = 120;
+			setBrightness();
 			ledOn = true;
 			FastLED.show();
+			Serial.println("Turning on");
 		}
 		delay(250);
 	}
@@ -109,6 +105,7 @@ void loop()
 	if (debouncer2.rose()) // Switch between modes
 	{
 		mode++;
+		Serial.println("Changing to program " + mode);
 		if (mode > 3)
 		{
 			mode = 1;
@@ -134,7 +131,6 @@ void loop()
 
 	run(mode);
 
-
 	FastLED.show();
 }
 
@@ -145,7 +141,7 @@ void run(int mode)
 	int adjPot = map(potVal, 0, 1023, 0, 255);
 	//Serial.println(adjPot);
 	//Serial.println(ColorFromPalette(whitePalette, adjPot));
-
+	Serial.println(mode);
 	switch (mode)
 	{
 	case 1: // colour
@@ -174,4 +170,17 @@ void run(int mode)
 
 	FastLED.show();
 
+}
+
+void setBrightness()
+{
+	FastLED.setBrightness(ledBrightness);
+	//for (int i = 0; i < NUM_LEDS/3; i++) {
+
+	//	leds[i] %= 60;
+	//}
+	//for (int i = 2*NUM_LEDS/3; i < NUM_LEDS; i++) {
+	//	leds[i] %= 60;
+	//}
+	FastLED.show();
 }
