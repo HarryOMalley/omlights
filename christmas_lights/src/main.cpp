@@ -20,21 +20,22 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 uint32_t Wheel(byte WheelPos);
 int rainbowCycle(uint8_t wait);
 int redGreen();
+void rainbow(uint8_t wait);
 
 void setup() {
   Serial.begin(9600);
   strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
-  for(int i = 0; i < LED_COUNT; i++)
-  {
-    strip.setPixelColor(i, 80, 80, 80);
-    strip.show();
-  }
+  //strip.show(); // Initialize all pixels to 'off'
+  // for(int i = 0; i < LED_COUNT; i++)
+  // {
+  //   strip.setPixelColor(i, 80, 80, 80);
+  //   strip.show();
+  // }
   // put your setup code here, to run once:
 }
 
 void loop() {
-  rainbowCycle(10);
+  rainbow(250);
   //redGreen();
   // put your main code here, to run repeatedly:
 }
@@ -122,24 +123,31 @@ uint32_t Wheel(byte WheelPos)
 	return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
+uint32_t Wheel2(byte WheelPos)
+{
+	WheelPos = 255 - WheelPos;
+	if (WheelPos < 85) {
+		return strip.Color(255 - WheelPos * 3, WheelPos * 3, 0);
+	}
+	if (WheelPos < 170) {
+		WheelPos = 170 - 85;
+		return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+	}
+	WheelPos -= 170;
+	return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+}
 
 
-int rainbow(uint8_t wait) {
+
+void rainbow(uint8_t wait) {
 	uint16_t i, j;
 
-	for (j = 0; j<256; j++) {
+	for (j = 0; j<255; j++) {
 		for (i = 0; i<strip.numPixels(); i++) {
 			strip.setPixelColor(i, Wheel((i + j) & 255));
 		}
 		strip.show();
 		delay(wait);
-		// if (Serial.available() > 0)
-		// {
-		// 	getInput();
-		// 	if (checkWords(inString) == 1)
-		// 	{
-		// 		return 0;
-		// 	}
-		// }
 	}
+  return;
 }
