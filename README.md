@@ -1,2 +1,3 @@
-# LEDMasterProgram
-Master Program to control Arduino Mega for LEDS
+# LED Controller
+Project to control WS2812B/SK6812 LEDs
+
