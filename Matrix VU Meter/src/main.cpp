@@ -7,21 +7,25 @@
 #include <FastLED_NeoMatrix.h>
 #include <arduinoFFT.h>
 #include <EasyButton.h>
+#include "WiFi.h"
+ 
+const char* ssid = "Lima";
+const char* password =  "Limesaregreat";
 
-#define SAMPLES         1024          // Must be a power of 2
-#define SAMPLING_FREQ   40000         // Hz, must be 40000 or less due to ADC conversion time. Determines maximum frequency that can be analysed by the FFT Fmax=sampleF/2.
-#define AMPLITUDE       1000        // Depending on your audio source level, you may need to alter this value. Can be used as a 'sensitivity' control.
+#define SAMPLES         512          // Must be a power of 2
+#define SAMPLING_FREQ   36000         // Hz, must be 40000 or less due to ADC conversion time. Determines maximum frequency that can be analysed by the FFT Fmax=sampleF/2.
+#define AMPLITUDE       2000        // Depending on your audio source level, you may need to alter this value. Can be used as a 'sensitivity' control.
 #define AUDIO_IN_PIN    35            // Signal in on this pin
 #define LED_PIN         5             // LED strip data
 #define BTN_PIN         4             // Connect a push button to this pin to change patterns
 #define LONG_PRESS_MS   200           // Number of ms to count as a long press
 #define COLOR_ORDER     GRB           // If colours look wrong, play with this
 #define CHIPSET         WS2812B       // LED strip type
-#define MAX_MILLIAMPS   20000          // Careful with the amount of power here if running off USB port
-const int BRIGHTNESS_SETTINGS[3] = {5, 100, 255};  // 3 Integer array for 3 brightness settings (based on pressing+holding BTN_PIN)
+#define MAX_MILLIAMPS   35000          // Careful with the amount of power here if running off USB port
+const int BRIGHTNESS_SETTINGS[3] = {255, 100, 255};  // 3 Integer array for 3 brightness settings (based on pressing+holding BTN_PIN)
 #define LED_VOLTS       5             // Usually 5 or 12
-#define NUM_BANDS       66            // To change this, you will need to change the bunch of if statements describing the mapping from bins to bands
-#define NOISE           500           // Used as a crude noise filter, values below this are ignore
+#define NUM_BANDS       33            // To change this, you will need to change the bunch of if statements describing the mapping from bins to bands
+#define NOISE           200           // Used as a crude noise filter, values below this are ignore
 
 #define MATRIX_TILE_WIDTH   22 // width of EACH NEOPIXEL MATRIX (not total display)
 #define MATRIX_TILE_HEIGHT  22 // height of each matrix
@@ -118,11 +122,20 @@ void setup() {
   FastLED.setBrightness(BRIGHTNESS_SETTINGS[0]);
   FastLED.clear();
 
-  modeBtn.begin();
-  modeBtn.onPressed(changeMode);
-  modeBtn.onPressedFor(LONG_PRESS_MS, brightnessButton);
-  modeBtn.onSequence(3, 2000, startAutoMode);
-  modeBtn.onSequence(5, 2000, brightnessOff);
+  WiFi.begin(ssid, password);
+ 
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting to WiFi..");
+  }
+ 
+  Serial.println("Connected to the WiFi network");
+
+  // modeBtn.begin();
+  // modeBtn.onPressed(changeMode);
+  // modeBtn.onPressedFor(LONG_PRESS_MS, brightnessButton);
+  // modeBtn.onSequence(3, 2000, startAutoMode);
+  // modeBtn.onSequence(5, 2000, brightnessOff);
   sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQ));
 }
 
@@ -188,72 +201,174 @@ void loop() {
   // Analyse FFT results
   for (int i = 2; i < (SAMPLES/2); i++){       // Don't use sample 0 and only first SAMPLES/2 are usable. Each array element represents a frequency bin and its value the amplitude.
     if (vReal[i] > NOISE) {                    // Add a crude noise filter
-if(i < 1) bandValues[0] += (int)vReal[i];
-if(i>1 && i <= 2) bandValues[1] += (int)vReal[i];
-if(i>2 && i <= 3) bandValues[2] += (int)vReal[i];
-if(i>3 && i <= 4) bandValues[3] += (int)vReal[i];
-if(i>4 && i <= 5) bandValues[4] += (int)vReal[i];
-if(i>5 && i <= 6) bandValues[5] += (int)vReal[i];
-if(i>6 && i <= 7) bandValues[6] += (int)vReal[i];
-if(i>7 && i <= 8) bandValues[7] += (int)vReal[i];
-if(i>8 && i <= 9) bandValues[8] += (int)vReal[i];
-if(i>9 && i <= 10) bandValues[9] += (int)vReal[i];
-if(i>10 && i <= 11) bandValues[10] += (int)vReal[i];
-if(i>11 && i <= 12) bandValues[11] += (int)vReal[i];
-if(i>12 && i <= 13) bandValues[12] += (int)vReal[i];
-if(i>13 && i <= 14) bandValues[13] += (int)vReal[i];
-if(i>14 && i <= 15) bandValues[14] += (int)vReal[i];
-if(i>15 && i <= 16) bandValues[15] += (int)vReal[i];
-if(i>16 && i <= 17) bandValues[16] += (int)vReal[i];
-if(i>17 && i <= 18) bandValues[17] += (int)vReal[i];
-if(i>18 && i <= 19) bandValues[18] += (int)vReal[i];
-if(i>19 && i <= 20) bandValues[19] += (int)vReal[i];
-if(i>20 && i <= 21) bandValues[20] += (int)vReal[i];
-if(i>21 && i <= 22) bandValues[21] += (int)vReal[i];
-if(i>22 && i <= 23) bandValues[22] += (int)vReal[i];
-if(i>23 && i <= 24) bandValues[23] += (int)vReal[i];
-if(i>24 && i <= 25) bandValues[24] += (int)vReal[i];
-if(i>25 && i <= 26) bandValues[25] += (int)vReal[i];
-if(i>26 && i <= 27) bandValues[26] += (int)vReal[i];
-if(i>27 && i <= 28) bandValues[27] += (int)vReal[i];
-if(i>28 && i <= 29) bandValues[28] += (int)vReal[i];
-if(i>29 && i <= 30) bandValues[29] += (int)vReal[i];
-if(i>30 && i <= 31) bandValues[30] += (int)vReal[i];
-if(i>31 && i <= 32) bandValues[31] += (int)vReal[i];
-if(i>32 && i <= 33) bandValues[32] += (int)vReal[i];
-if(i>33 && i <= 34) bandValues[33] += (int)vReal[i];
-if(i>34 && i <= 35) bandValues[34] += (int)vReal[i];
-if(i>35 && i <= 37) bandValues[35] += (int)vReal[i];
-if(i>37 && i <= 40) bandValues[36] += (int)vReal[i];
-if(i>40 && i <= 43) bandValues[37] += (int)vReal[i];
-if(i>43 && i <= 47) bandValues[38] += (int)vReal[i];
-if(i>47 && i <= 51) bandValues[39] += (int)vReal[i];
-if(i>51 && i <= 55) bandValues[40] += (int)vReal[i];
-if(i>55 && i <= 60) bandValues[41] += (int)vReal[i];
-if(i>60 && i <= 65) bandValues[42] += (int)vReal[i];
-if(i>65 && i <= 71) bandValues[43] += (int)vReal[i];
-if(i>71 && i <= 77) bandValues[44] += (int)vReal[i];
-if(i>77 && i <= 83) bandValues[45] += (int)vReal[i];
-if(i>83 && i <= 90) bandValues[46] += (int)vReal[i];
-if(i>90 && i <= 98) bandValues[47] += (int)vReal[i];
-if(i>98 && i <= 106) bandValues[48] += (int)vReal[i];
-if(i>106 && i <= 115) bandValues[49] += (int)vReal[i];
-if(i>115 && i <= 125) bandValues[50] += (int)vReal[i];
-if(i>125 && i <= 136) bandValues[51] += (int)vReal[i];
-if(i>136 && i <= 147) bandValues[52] += (int)vReal[i];
-if(i>147 && i <= 160) bandValues[53] += (int)vReal[i];
-if(i>160 && i <= 174) bandValues[54] += (int)vReal[i];
-if(i>174 && i <= 188) bandValues[55] += (int)vReal[i];
-if(i>188 && i <= 205) bandValues[56] += (int)vReal[i];
-if(i>205 && i <= 222) bandValues[57] += (int)vReal[i];
-if(i>222 && i <= 241) bandValues[58] += (int)vReal[i];
-if(i>241 && i <= 261) bandValues[59] += (int)vReal[i];
-if(i>261 && i <= 284) bandValues[60] += (int)vReal[i];
-if(i>284 && i <= 308) bandValues[61] += (int)vReal[i];
-if(i>308 && i <= 334) bandValues[62] += (int)vReal[i];
-if(i>334 && i <= 362) bandValues[63] += (int)vReal[i];
-if(i>362 && i <= 393) bandValues[64] += (int)vReal[i];
-if(i>393 && i <= 426) bandValues[65] += (int)vReal[i];
+// if(i <= 2) bandValues[0] += (int)vReal[i];
+// if(i>1 && i <= 2) bandValues[1] += (int)vReal[i];
+// if(i>2 && i <= 3) bandValues[2] += (int)vReal[i];
+// if(i>3 && i <= 4) bandValues[3] += (int)vReal[i];
+// if(i>4 && i <= 5) bandValues[4] += (int)vReal[i];
+// if(i>5 && i <= 6) bandValues[5] += (int)vReal[i];
+// if(i>6 && i <= 7) bandValues[6] += (int)vReal[i];
+// if(i>7 && i <= 8) bandValues[7] += (int)vReal[i];
+// if(i>8 && i <= 9) bandValues[8] += (int)vReal[i];
+// if(i>9 && i <= 10) bandValues[9] += (int)vReal[i];
+// if(i>10 && i <= 11) bandValues[10] += (int)vReal[i];
+// if(i>11 && i <= 12) bandValues[11] += (int)vReal[i];
+// if(i>12 && i <= 13) bandValues[12] += (int)vReal[i];
+// if(i>13 && i <= 14) bandValues[13] += (int)vReal[i];
+// if(i>14 && i <= 15) bandValues[14] += (int)vReal[i];
+// if(i>15 && i <= 16) bandValues[15] += (int)vReal[i];
+// if(i>16 && i <= 17) bandValues[16] += (int)vReal[i];
+// if(i>17 && i <= 18) bandValues[17] += (int)vReal[i];
+// if(i>18 && i <= 19) bandValues[18] += (int)vReal[i];
+// if(i>19 && i <= 20) bandValues[19] += (int)vReal[i];
+// if(i>20 && i <= 21) bandValues[20] += (int)vReal[i];
+// if(i>21 && i <= 22) bandValues[21] += (int)vReal[i];
+// if(i>22 && i <= 23) bandValues[22] += (int)vReal[i];
+// if(i>23 && i <= 24) bandValues[23] += (int)vReal[i];
+// if(i>24 && i <= 25) bandValues[24] += (int)vReal[i];
+// if(i>25 && i <= 26) bandValues[25] += (int)vReal[i];
+// if(i>26 && i <= 27) bandValues[26] += (int)vReal[i];
+// if(i>27 && i <= 28) bandValues[27] += (int)vReal[i];
+// if(i>28 && i <= 29) bandValues[28] += (int)vReal[i];
+// if(i>29 && i <= 30) bandValues[29] += (int)vReal[i];
+// if(i>30 && i <= 31) bandValues[30] += (int)vReal[i];
+// if(i>31 && i <= 32) bandValues[31] += (int)vReal[i];
+// if(i>32 && i <= 33) bandValues[32] += (int)vReal[i];
+// if(i>33 && i <= 34) bandValues[33] += (int)vReal[i];
+// if(i>34 && i <= 35) bandValues[34] += (int)vReal[i];
+// if(i>35 && i <= 37) bandValues[35] += (int)vReal[i];
+// if(i>37 && i <= 40) bandValues[36] += (int)vReal[i];
+// if(i>40 && i <= 43) bandValues[37] += (int)vReal[i];
+// if(i>43 && i <= 47) bandValues[38] += (int)vReal[i];
+// if(i>47 && i <= 51) bandValues[39] += (int)vReal[i];
+// if(i>51 && i <= 55) bandValues[40] += (int)vReal[i];
+// if(i>55 && i <= 60) bandValues[41] += (int)vReal[i];
+// if(i>60 && i <= 65) bandValues[42] += (int)vReal[i];
+// if(i>65 && i <= 71) bandValues[43] += (int)vReal[i];
+// if(i>71 && i <= 77) bandValues[44] += (int)vReal[i];
+// if(i>77 && i <= 83) bandValues[45] += (int)vReal[i];
+// if(i>83 && i <= 90) bandValues[46] += (int)vReal[i];
+// if(i>90 && i <= 98) bandValues[47] += (int)vReal[i];
+// if(i>98 && i <= 106) bandValues[48] += (int)vReal[i];
+// if(i>106 && i <= 115) bandValues[49] += (int)vReal[i];
+// if(i>115 && i <= 125) bandValues[50] += (int)vReal[i];
+// if(i>125 && i <= 136) bandValues[51] += (int)vReal[i];
+// if(i>136 && i <= 147) bandValues[52] += (int)vReal[i];
+// if(i>147 && i <= 160) bandValues[53] += (int)vReal[i];
+// if(i>160 && i <= 174) bandValues[54] += (int)vReal[i];
+// if(i>174 && i <= 188) bandValues[55] += (int)vReal[i];
+// if(i>188 && i <= 205) bandValues[56] += (int)vReal[i];
+// if(i>205 && i <= 222) bandValues[57] += (int)vReal[i];
+// if(i>222 && i <= 241) bandValues[58] += (int)vReal[i];
+// if(i>241 && i <= 261) bandValues[59] += (int)vReal[i];
+// if(i>261 && i <= 284) bandValues[60] += (int)vReal[i];
+// if(i>284 && i <= 308) bandValues[61] += (int)vReal[i];
+// if(i>308 && i <= 334) bandValues[62] += (int)vReal[i];
+// if(i>334 && i <= 362) bandValues[63] += (int)vReal[i];
+// if(i>362 && i <= 393) bandValues[64] += (int)vReal[i];
+// if(i>393 && i <= 426) bandValues[65] += (int)vReal[i];
+
+
+// if(i>1 && i <= 2) bandValues[1] += (int)vReal[i];
+// if(i>2 && i <= 3) bandValues[2] += (int)vReal[i];
+// if(i>3 && i <= 4) bandValues[3] += (int)vReal[i];
+// if(i>4 && i <= 5) bandValues[4] += (int)vReal[i];
+// if(i>5 && i <= 6) bandValues[5] += (int)vReal[i];
+// if(i>6 && i <= 7) bandValues[6] += (int)vReal[i];
+// if(i>7 && i <= 8) bandValues[7] += (int)vReal[i];
+// if(i>8 && i <= 9) bandValues[8] += (int)vReal[i];
+// if(i>9 && i <= 10) bandValues[9] += (int)vReal[i];
+// if(i>10 && i <= 11) bandValues[10] += (int)vReal[i];
+// if(i>11 && i <= 12) bandValues[11] += (int)vReal[i];
+// if(i>12 && i <= 13) bandValues[12] += (int)vReal[i];
+// if(i>13 && i <= 14) bandValues[13] += (int)vReal[i];
+// if(i>14 && i <= 15) bandValues[14] += (int)vReal[i];
+// if(i>15 && i <= 16) bandValues[15] += (int)vReal[i];
+// if(i>16 && i <= 17) bandValues[16] += (int)vReal[i];
+// if(i>17 && i <= 18) bandValues[17] += (int)vReal[i];
+// if(i>18 && i <= 19) bandValues[18] += (int)vReal[i];
+// if(i>19 && i <= 20) bandValues[19] += (int)vReal[i];
+// if(i>20 && i <= 21) bandValues[20] += (int)vReal[i];
+// if(i>21 && i <= 22) bandValues[21] += (int)vReal[i];
+// if(i>22 && i <= 23) bandValues[22] += (int)vReal[i];
+// if(i>23 && i <= 24) bandValues[23] += (int)vReal[i];
+// if(i>24 && i <= 25) bandValues[24] += (int)vReal[i];
+// if(i>25 && i <= 26) bandValues[25] += (int)vReal[i];
+// if(i>26 && i <= 27) bandValues[26] += (int)vReal[i];
+// if(i>27 && i <= 28) bandValues[27] += (int)vReal[i];
+// if(i>28 && i <= 29) bandValues[28] += (int)vReal[i];
+// if(i>29 && i <= 30) bandValues[29] += (int)vReal[i];
+// if(i>30 && i <= 31) bandValues[30] += (int)vReal[i];
+// if(i>31 && i <= 32) bandValues[31] += (int)vReal[i];
+// if(i>32 && i <= 33) bandValues[32] += (int)vReal[i];
+// if(i <= 2) bandValues[1] += (int)vReal[i];
+// if(i <= 2) bandValues[2] += (int)vReal[i];
+// //   if(i>=1 && i <= 1) bandValues[1] += (int)vReal[i];
+// // if(i>=1 && i <= 1) bandValues[2] += (int)vReal[i];
+// if(i>=1 && i <= 2) bandValues[3] += (int)vReal[i];
+// if(i>=2 && i <= 2) bandValues[4] += (int)vReal[i];
+// if(i>=2 && i <= 2) bandValues[5] += (int)vReal[i];
+// if(i>=2 && i <= 3) bandValues[6] += (int)vReal[i];
+// if(i>=3 && i <= 3) bandValues[7] += (int)vReal[i];
+// if(i>=3 && i <= 4) bandValues[8] += (int)vReal[i];
+// if(i>=4 && i <= 5) bandValues[9] += (int)vReal[i];
+// if(i>=5 && i <= 6) bandValues[10] += (int)vReal[i];
+// if(i>=6 && i <= 7) bandValues[11] += (int)vReal[i];
+// if(i>=7 && i <= 9) bandValues[12] += (int)vReal[i];
+// if(i>=9 && i <= 10) bandValues[13] += (int)vReal[i];
+// if(i>=10 && i <= 12) bandValues[14] += (int)vReal[i];
+// if(i>=12 && i <= 14) bandValues[15] += (int)vReal[i];
+// if(i>=14 && i <= 17) bandValues[16] += (int)vReal[i];
+// if(i>=17 && i <= 20) bandValues[17] += (int)vReal[i];
+// if(i>=20 && i <= 24) bandValues[18] += (int)vReal[i];
+// if(i>=24 && i <= 28) bandValues[19] += (int)vReal[i];
+// if(i>=28 && i <= 34) bandValues[20] += (int)vReal[i];
+// if(i>=34 && i <= 40) bandValues[21] += (int)vReal[i];
+// if(i>=40 && i <= 47) bandValues[22] += (int)vReal[i];
+// if(i>=47 && i <= 55) bandValues[23] += (int)vReal[i];
+// if(i>=55 && i <= 65) bandValues[24] += (int)vReal[i];
+// if(i>=65 && i <= 77) bandValues[25] += (int)vReal[i];
+// if(i>=77 && i <= 91) bandValues[26] += (int)vReal[i];
+// if(i>=91 && i <= 108) bandValues[27] += (int)vReal[i];
+// if(i>=108 && i <= 127) bandValues[28] += (int)vReal[i];
+// if(i>=127 && i <= 150) bandValues[29] += (int)vReal[i];
+// if(i>=150 && i <= 178) bandValues[30] += (int)vReal[i];
+// if(i>=178 && i <= 210) bandValues[31] += (int)vReal[i];
+// if(i>=210 && i <= 248) bandValues[32] += (int)vReal[i];
+
+if(i <= 2) bandValues[0] += (int)vReal[i];
+if(i>=2 && i <= 3) bandValues[1] += (int)vReal[i];
+if(i>=3 && i <= 4) bandValues[2] += (int)vReal[i];
+if(i>=4 && i <= 5) bandValues[3] += (int)vReal[i];
+if(i>=5 && i <= 6) bandValues[4] += (int)vReal[i];
+if(i>=6 && i <= 7) bandValues[5] += (int)vReal[i];
+if(i>=7 && i <= 8) bandValues[6] += (int)vReal[i];
+if(i>=8 && i <= 9) bandValues[7] += (int)vReal[i];
+if(i>=9 && i <= 10) bandValues[8] += (int)vReal[i];
+if(i>=10 && i <= 11) bandValues[9] += (int)vReal[i];
+if(i>=11 && i <= 12) bandValues[10] += (int)vReal[i];
+if(i>=12 && i <= 13) bandValues[11] += (int)vReal[i];
+if(i>=13 && i <= 14) bandValues[12] += (int)vReal[i];
+if(i>=14 && i <= 15) bandValues[13] += (int)vReal[i];
+if(i>=15 && i <= 16) bandValues[14] += (int)vReal[i];
+if(i>=16 && i <= 17) bandValues[15] += (int)vReal[i];
+if(i>=17 && i <= 18) bandValues[16] += (int)vReal[i];
+if(i>=18 && i <= 20) bandValues[17] += (int)vReal[i];
+if(i>=20 && i <= 24) bandValues[18] += (int)vReal[i];
+if(i>=24 && i <= 28) bandValues[19] += (int)vReal[i];
+if(i>=28 && i <= 34) bandValues[20] += (int)vReal[i];
+if(i>=34 && i <= 40) bandValues[21] += (int)vReal[i];
+if(i>=40 && i <= 47) bandValues[22] += (int)vReal[i];
+if(i>=47 && i <= 55) bandValues[23] += (int)vReal[i];
+if(i>=55 && i <= 65) bandValues[24] += (int)vReal[i];
+if(i>=65 && i <= 77) bandValues[25] += (int)vReal[i];
+if(i>=77 && i <= 91) bandValues[26] += (int)vReal[i];
+if(i>=91 && i <= 108) bandValues[27] += (int)vReal[i];
+if(i>=108 && i <= 127) bandValues[28] += (int)vReal[i];
+if(i>=127 && i <= 150) bandValues[29] += (int)vReal[i];
+if(i>=150 && i <= 178) bandValues[30] += (int)vReal[i];
+if(i>=178 && i <= 210) bandValues[31] += (int)vReal[i];
+if(i>=210 && i <= 248) bandValues[32] += (int)vReal[i];
 
 
     }
