@@ -117,6 +117,9 @@ int buttonPushCounter = 0;
 bool autoChangePatterns = false;
 EasyButton modeBtn(BTN_PIN);
 
+int barMode = 0;
+
+
 uint8_t mode = 0;
 uint8_t strobeStatus = 0;
 uint16_t strobeRate = 200;
@@ -459,7 +462,9 @@ CRGBPalette16 palette10 = cmy_gp;
 
 CRGBPalette16 paletteList[] = {palette1, palette2, palette3, palette4, palette5, palette6, palette7, palette8, palette9, palette10};
 
-CRGBPalette16 currentPalette = paletteList[0];
+int paletteIndex = 0;
+CRGBPalette16 currentPalette = paletteList[paletteIndex];
+CRGBPalette16 targetPalette = paletteList[paletteIndex];
 
 uint8_t colorTimer = 0;
 
@@ -485,6 +490,8 @@ void waterfall(int band);
 void mqttCallback(char* topic, byte* message, unsigned int length);
 void paintWhite();
 void paintBlack();
+void doFFT();
+void paletteBars(int band, int barHeight);
 
 void setup() {
   initialiseArrays();
@@ -525,6 +532,9 @@ void reconnect() {
       client.subscribe("matrix/brightness");
       client.subscribe("strobe");
       client.subscribe("strobe/rate");
+      client.subscribe("barMode");
+      client.subscribe("changePalette");
+      client.subscribe("setPalette");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -547,42 +557,62 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
   }
   Serial.println();
 
-  // Feel free to add more if statements to control more GPIOs with MQTT
+    // Feel free to add more if statements to control more GPIOs with MQTT
 
-  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off". 
-  // Changes the output state according to the message
-  if (String(topic) == "matrix/brightness") {
-    // Serial.print("Changing output to ");
-    if(messageTemp == "2"){
-      Serial.println("on");
-      FastLED.setBrightness(BRIGHTNESS_SETTINGS[2]);
+    // If a message is received on the topic esp32/output, you check if the message is either "on" or "off". 
+    // Changes the output state according to the message
+    if (String(topic) == "matrix/brightness") {
+      // Serial.print("Changing output to ");
+      if(messageTemp == "2"){
+        Serial.println("on");
+        FastLED.setBrightness(BRIGHTNESS_SETTINGS[2]);
+      }
+      else if(messageTemp == "1"){
+        Serial.println("on");
+        FastLED.setBrightness(BRIGHTNESS_SETTINGS[1]);
+      }
+      else if(messageTemp == "0"){
+        Serial.println("on");
+        FastLED.setBrightness(BRIGHTNESS_SETTINGS[0]);
+      }
+      else if(messageTemp == "off"){
+        Serial.println("off");
+        FastLED.setBrightness(0);
+      }
     }
-    else if(messageTemp == "1"){
-      Serial.println("on");
-      FastLED.setBrightness(BRIGHTNESS_SETTINGS[1]);
-    }
-    else if(messageTemp == "0"){
-      Serial.println("on");
-      FastLED.setBrightness(BRIGHTNESS_SETTINGS[0]);
-    }
-    else if(messageTemp == "off"){
-      Serial.println("off");
-      FastLED.setBrightness(0);
-    }
-  }
 
-  if (String(topic) == "strobe") {
-    if(messageTemp == "on") {
-      mode = 1;
-    } else {
-      mode = 0;
+    if (String(topic) == "strobe") {
+      if(messageTemp == "on") {
+        mode = 1;
+      } else {
+        mode = 0;
+      }
     }
-  }
-if (String(topic) == "strobe/rate") {
-    strobeRate = messageTemp.toInt();
-  }
+    if (String(topic) == "strobe/rate") {
+        strobeRate = messageTemp.toInt();
+      }
+
+    if (String(topic) == "barMode") {
+        strobeRate = messageTemp.toInt();
+      }
+    if (String(topic) == "changePalette") {
+      if(paletteIndex > 9) {
+        paletteIndex = 0;
+      } else {
+        paletteIndex += 1;
+      }
+
+        targetPalette = paletteList[paletteIndex];
+      }
+
+    if (String(topic) == "setPalette") {
+        int index = messageTemp.toInt();
+        if(index > -1 && index <= 9) {
+          paletteIndex = index;
+          targetPalette = paletteList[paletteIndex];
+        }
+      }
 }
-
 void initialiseArrays() {
   for(int i=0; i<MATRIX_WIDTH; i++){
       peak[i] = 0;
@@ -639,13 +669,168 @@ void loop() {
     }
   } else {
 
+    EVERY_N_MILLISECONDS( 10 ) {
+        nblendPaletteTowardPalette( currentPalette, targetPalette, 12);
+    }
+    // Don't clear screen if waterfall pattern, be sure to change this is you change the patterns / order
+    // if (buttonPushCounter != 5) FastLED.clear();
 
-  // Don't clear screen if waterfall pattern, be sure to change this is you change the patterns / order
-  // if (buttonPushCounter != 5) FastLED.clear();
+  FastLED.clear();
 
-  // modeBtn.read();
+    // modeBtn.read();
 
+    // doFFT();
   // Reset bandValues[]
+  for (int i = 0; i<NUM_BANDS; i++){
+    bandValues[i] = 0;
+  }
+
+  // Sample the audio pin
+  for (int i = 0; i < SAMPLES; i++) {
+    newTime = micros();
+    vReal[i] = analogRead(AUDIO_IN_PIN); // A conversion takes about 9.7uS on an ESP32
+    vImag[i] = 0;
+    while ((micros() - newTime) < sampling_period_us) { /* chill */ }
+  }
+
+  // Compute FFT
+  FFT.DCRemoval();
+  FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+  FFT.Compute(FFT_FORWARD);
+  FFT.ComplexToMagnitude();
+
+  // Analyse FFT results
+  for (int i = 2; i < (SAMPLES/2); i++){       // Don't use sample 0 and only first SAMPLES/2 are usable. Each array element represents a frequency bin and its value the amplitude.
+    if (vReal[i] > NOISE) {                    // Add a crude noise filter
+
+    if(i <= 2) bandValues[0] += (int)vReal[i];
+    if(i>=2 && i <= 3) bandValues[1] += (int)vReal[i];
+    if(i>=3 && i <= 4) bandValues[2] += (int)vReal[i];
+    if(i>=4 && i <= 5) bandValues[3] += (int)vReal[i];
+    if(i>=5 && i <= 6) bandValues[4] += (int)vReal[i];
+    if(i>=6 && i <= 7) bandValues[5] += (int)vReal[i];
+    if(i>=7 && i <= 8) bandValues[6] += (int)vReal[i];
+    if(i>=8 && i <= 9) bandValues[7] += (int)vReal[i];
+    if(i>=9 && i <= 10) bandValues[8] += (int)vReal[i];
+    if(i>=10 && i <= 11) bandValues[9] += (int)vReal[i];
+    if(i>=11 && i <= 12) bandValues[10] += (int)vReal[i];
+    if(i>=12 && i <= 13) bandValues[11] += (int)vReal[i];
+    if(i>=13 && i <= 14) bandValues[12] += (int)vReal[i];
+    if(i>=14 && i <= 15) bandValues[13] += (int)vReal[i];
+    if(i>=15 && i <= 16) bandValues[14] += (int)vReal[i];
+    if(i>=16 && i <= 17) bandValues[15] += (int)vReal[i];
+    if(i>=17 && i <= 18) bandValues[16] += (int)vReal[i];
+    if(i>=18 && i <= 20) bandValues[17] += (int)vReal[i];
+    if(i>=20 && i <= 24) bandValues[18] += (int)vReal[i];
+    if(i>=24 && i <= 28) bandValues[19] += (int)vReal[i];
+    if(i>=28 && i <= 34) bandValues[20] += (int)vReal[i];
+    if(i>=34 && i <= 40) bandValues[21] += (int)vReal[i];
+    if(i>=40 && i <= 47) bandValues[22] += (int)vReal[i];
+    if(i>=47 && i <= 55) bandValues[23] += (int)vReal[i];
+    if(i>=55 && i <= 65) bandValues[24] += (int)vReal[i];
+    if(i>=65 && i <= 77) bandValues[25] += (int)vReal[i];
+    if(i>=77 && i <= 91) bandValues[26] += (int)vReal[i];
+    if(i>=91 && i <= 108) bandValues[27] += (int)vReal[i];
+    if(i>=108 && i <= 127) bandValues[28] += (int)vReal[i];
+    if(i>=127 && i <= 150) bandValues[29] += (int)vReal[i];
+    if(i>=150 && i <= 178) bandValues[30] += (int)vReal[i];
+    if(i>=178 && i <= 210) bandValues[31] += (int)vReal[i];
+    if(i>=210 && i <= 248) bandValues[32] += (int)vReal[i];
+
+
+    }
+  }
+
+  // Process the FFT data into bar heights
+  for (byte band = 0; band < NUM_BANDS; band++) {
+
+   // Scale the bars for the display
+    int barHeight = bandValues[band] / AMPLITUDE;
+    if (barHeight > TOP) barHeight = TOP;
+
+    // Small amount of averaging between frames
+    barHeight = ((oldBarHeights[band] * 1) + barHeight) / 2;
+
+    // Move peak up
+    if (barHeight > peak[band]) {
+      peak[band] = min(TOP, barHeight);
+    }
+    // paintBlack();
+    // Draw bars
+    switch (barMode) {
+      case 0:
+          paletteBars(band, barHeight);
+          whitePeak(band);
+        break;
+      case 1:
+        rainbowBars(band, barHeight);
+        whitePeak(band);
+        break;
+      case 2:
+        purpleBars(band, barHeight);
+        whitePeak(band);
+        break;
+      case 3:
+        centerBars(band, barHeight);
+        break;
+      case 4:
+        changingBars(band, barHeight);
+        break;
+      case 5:
+        waterfall(band);
+        break;
+    }
+
+    // // // Draw peaks
+    // switch (buttonPushCounter) {
+    //   case 0:
+    //     whitePeak(band);
+    //     break;
+    //   case 1:
+    //     outrunPeak(band);
+    //     break;
+    //   case 2:
+    //     whitePeak(band);
+    //     break;
+    //   case 3:
+    //     // No peaks
+    //     break;
+    //   case 4:
+    //     // No peaks
+    //     break;
+    //   case 5:
+    //     // No peaks
+    //     break;
+    // }
+
+    // Save oldBarHeights for averaging later
+    oldBarHeights[band] = barHeight;
+  }
+
+  // Decay peak
+  EVERY_N_MILLISECONDS(60) {
+    for (byte band = 0; band < NUM_BANDS; band++)
+      if (peak[band] > 0) peak[band] -= 1;
+    colorTimer++;
+  }
+
+  // Used in some of the patterns
+  EVERY_N_MILLISECONDS(10) {
+    colorTimer++;
+  }
+
+  EVERY_N_SECONDS(10) {
+    if (autoChangePatterns) buttonPushCounter = (buttonPushCounter + 1) % 6;
+  }
+
+  FastLED.show();
+  }
+}
+
+// do fft
+
+void doFFT() {
+    // Reset bandValues[]
   for (int i = 0; i<NUM_BANDS; i++){
     bandValues[i] = 0;
   }
@@ -724,13 +909,16 @@ void loop() {
     // Draw bars
     switch (buttonPushCounter) {
       case 0:
-        rainbowBars(band, barHeight);
+          paletteBars(band, barHeight);
+          // whitePeak(band);
         break;
       case 1:
-        // No bars on this one
+        rainbowBars(band, barHeight);
+        // whitePeak(band);
         break;
       case 2:
         purpleBars(band, barHeight);
+        // whitePeak(band);
         break;
       case 3:
         centerBars(band, barHeight);
@@ -743,50 +931,31 @@ void loop() {
         break;
     }
 
-    // Draw peaks
-    switch (buttonPushCounter) {
-      case 0:
-        whitePeak(band);
-        break;
-      case 1:
-        outrunPeak(band);
-        break;
-      case 2:
-        whitePeak(band);
-        break;
-      case 3:
-        // No peaks
-        break;
-      case 4:
-        // No peaks
-        break;
-      case 5:
-        // No peaks
-        break;
-    }
+    // // // Draw peaks
+    // switch (buttonPushCounter) {
+    //   case 0:
+    //     whitePeak(band);
+    //     break;
+    //   case 1:
+    //     outrunPeak(band);
+    //     break;
+    //   case 2:
+    //     whitePeak(band);
+    //     break;
+    //   case 3:
+    //     // No peaks
+    //     break;
+    //   case 4:
+    //     // No peaks
+    //     break;
+    //   case 5:
+    //     // No peaks
+    //     break;
+    // }
 
     // Save oldBarHeights for averaging later
     oldBarHeights[band] = barHeight;
-      }
-  }
-
-  // Decay peak
-  EVERY_N_MILLISECONDS(60) {
-    for (byte band = 0; band < NUM_BANDS; band++)
-      if (peak[band] > 0) peak[band] -= 1;
-    colorTimer++;
-  }
-
-  // Used in some of the patterns
-  EVERY_N_MILLISECONDS(10) {
-    colorTimer++;
-  }
-
-  EVERY_N_SECONDS(10) {
-    if (autoChangePatterns) buttonPushCounter = (buttonPushCounter + 1) % 6;
-  }
-
-  FastLED.show();
+    }
 }
 
 // PATTERNS BELOW //
