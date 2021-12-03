@@ -23,7 +23,7 @@ int value = 0;
 
 #define SAMPLES         512          // Must be a power of 2
 #define SAMPLING_FREQ   36000         // Hz, must be 40000 or less due to ADC conversion time. Determines maximum frequency that can be analysed by the FFT Fmax=sampleF/2.
-#define AMPLITUDE       2000        // Depending on your audio source level, you may need to alter this value. Can be used as a 'sensitivity' control.
+uint16_t AMPLITUDE = 2000;        // Depending on your audio source level, you may need to alter this value. Can be used as a 'sensitivity' control.
 #define AUDIO_IN_PIN    35            // Signal in on this pin
 #define LED_PIN         5             // LED strip data
 #define BTN_PIN         4             // Connect a push button to this pin to change patterns
@@ -52,56 +52,6 @@ const int BRIGHTNESS_SETTINGS[3] = {5, 100, 255};  // 3 Integer array for 3 brig
 #define BAR_WIDTH      (MATRIX_WIDTH  / (NUM_BANDS - 1))  // If width >= 8 light 1 LED width per bar, >= 16 light 2 LEDs width bar etc
 #define TOP            (MATRIX_HEIGHT - 0)                // Don't allow the bars to go offscreen
 #define SERPENTINE     true                               // Set to false if you're LEDS are connected end to end, true if serpentine
-
-
-
-#define LED_BLACK		0
-
-#define LED_RED_VERYLOW 	(3 <<  11)
-#define LED_RED_LOW 		(7 <<  11)
-#define LED_RED_MEDIUM 		(15 << 11)
-#define LED_RED_HIGH 		(31 << 11)
-
-#define LED_GREEN_VERYLOW	(1 <<  5)
-#define LED_GREEN_LOW 		(15 << 5)
-#define LED_GREEN_MEDIUM 	(31 << 5)
-#define LED_GREEN_HIGH 		(63 << 5)
-
-#define LED_BLUE_VERYLOW	3
-#define LED_BLUE_LOW 		7
-#define LED_BLUE_MEDIUM 	15
-#define LED_BLUE_HIGH 		31
-
-#define LED_ORANGE_VERYLOW	(LED_RED_VERYLOW + LED_GREEN_VERYLOW)
-#define LED_ORANGE_LOW		(LED_RED_LOW     + LED_GREEN_LOW)
-#define LED_ORANGE_MEDIUM	(LED_RED_MEDIUM  + LED_GREEN_MEDIUM)
-#define LED_ORANGE_HIGH		(LED_RED_HIGH    + LED_GREEN_HIGH)
-
-#define LED_PURPLE_VERYLOW	(LED_RED_VERYLOW + LED_BLUE_VERYLOW)
-#define LED_PURPLE_LOW		(LED_RED_LOW     + LED_BLUE_LOW)
-#define LED_PURPLE_MEDIUM	(LED_RED_MEDIUM  + LED_BLUE_MEDIUM)
-#define LED_PURPLE_HIGH		(LED_RED_HIGH    + LED_BLUE_HIGH)
-
-#define LED_CYAN_VERYLOW	(LED_GREEN_VERYLOW + LED_BLUE_VERYLOW)
-#define LED_CYAN_LOW		(LED_GREEN_LOW     + LED_BLUE_LOW)
-#define LED_CYAN_MEDIUM		(LED_GREEN_MEDIUM  + LED_BLUE_MEDIUM)
-#define LED_CYAN_HIGH		(LED_GREEN_HIGH    + LED_BLUE_HIGH)
-
-#define LED_WHITE_VERYLOW	(LED_RED_VERYLOW + LED_GREEN_VERYLOW + LED_BLUE_VERYLOW)
-#define LED_WHITE_LOW		(LED_RED_LOW     + LED_GREEN_LOW     + LED_BLUE_LOW)
-#define LED_WHITE_MEDIUM	(LED_RED_MEDIUM  + LED_GREEN_MEDIUM  + LED_BLUE_MEDIUM)
-#define LED_WHITE_HIGH		(LED_RED_HIGH    + LED_GREEN_HIGH    + LED_BLUE_HIGH)
-
-
-// Sampling and FFT stuff
-// unsigned int sampling_period_us;
-// byte peak[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};              // The length of these arrays must be >= NUM_BANDS
-// int oldBarHeights[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-// int bandValues[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-// double vReal[SAMPLES];
-// double vImag[SAMPLES];
-// unsigned long newTime;
-// arduinoFFT FFT = arduinoFFT(vReal, vImag, SAMPLES, SAMPLING_FREQ);
 
 unsigned int sampling_period_us;
 byte peak[MATRIX_WIDTH];              // The length of these arrays must be >= NUM_BANDS
@@ -535,6 +485,7 @@ void reconnect() {
       client.subscribe("barMode");
       client.subscribe("changePalette");
       client.subscribe("setPalette");
+      client.subscribe("matrix/amplitude");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -578,7 +529,14 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
       else if(messageTemp == "off"){
         Serial.println("off");
         FastLED.setBrightness(0);
+      } else {
+        FastLED.setBrightness(messageTemp.toInt());
       }
+    }
+
+    if (String(topic) == "matrix/amplitude") {
+      // Serial.print("Changing output to ");
+        AMPLITUDE = messageTemp.toInt();
     }
 
     if (String(topic) == "strobe") {
@@ -593,7 +551,7 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
       }
 
     if (String(topic) == "barMode") {
-        strobeRate = messageTemp.toInt();
+        barMode = messageTemp.toInt();
       }
     if (String(topic) == "changePalette") {
       if(paletteIndex > 9) {
@@ -652,10 +610,12 @@ void brightnessOff(){
 void loop() {
 
   if (!client.connected()) {
+    Serial.println("Not connected anymore");
       reconnect();
-    }
+  }
   client.loop();
-
+  // esp_task_wdt_reset();
+  // Serial.println("TEST");
   if(mode == 1) { //STROBE
      delay(strobeRate);
     if(strobeStatus == 0) {
@@ -668,162 +628,31 @@ void loop() {
       strobeStatus = 0;
     }
   } else {
-
+    
     EVERY_N_MILLISECONDS( 10 ) {
-        nblendPaletteTowardPalette( currentPalette, targetPalette, 12);
-    }
-    // Don't clear screen if waterfall pattern, be sure to change this is you change the patterns / order
-    // if (buttonPushCounter != 5) FastLED.clear();
-
-  FastLED.clear();
-
-    // modeBtn.read();
-
-    // doFFT();
-  // Reset bandValues[]
-  for (int i = 0; i<NUM_BANDS; i++){
-    bandValues[i] = 0;
-  }
-
-  // Sample the audio pin
-  for (int i = 0; i < SAMPLES; i++) {
-    newTime = micros();
-    vReal[i] = analogRead(AUDIO_IN_PIN); // A conversion takes about 9.7uS on an ESP32
-    vImag[i] = 0;
-    while ((micros() - newTime) < sampling_period_us) { /* chill */ }
-  }
-
-  // Compute FFT
-  FFT.DCRemoval();
-  FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-  FFT.Compute(FFT_FORWARD);
-  FFT.ComplexToMagnitude();
-
-  // Analyse FFT results
-  for (int i = 2; i < (SAMPLES/2); i++){       // Don't use sample 0 and only first SAMPLES/2 are usable. Each array element represents a frequency bin and its value the amplitude.
-    if (vReal[i] > NOISE) {                    // Add a crude noise filter
-
-    if(i <= 2) bandValues[0] += (int)vReal[i];
-    if(i>=2 && i <= 3) bandValues[1] += (int)vReal[i];
-    if(i>=3 && i <= 4) bandValues[2] += (int)vReal[i];
-    if(i>=4 && i <= 5) bandValues[3] += (int)vReal[i];
-    if(i>=5 && i <= 6) bandValues[4] += (int)vReal[i];
-    if(i>=6 && i <= 7) bandValues[5] += (int)vReal[i];
-    if(i>=7 && i <= 8) bandValues[6] += (int)vReal[i];
-    if(i>=8 && i <= 9) bandValues[7] += (int)vReal[i];
-    if(i>=9 && i <= 10) bandValues[8] += (int)vReal[i];
-    if(i>=10 && i <= 11) bandValues[9] += (int)vReal[i];
-    if(i>=11 && i <= 12) bandValues[10] += (int)vReal[i];
-    if(i>=12 && i <= 13) bandValues[11] += (int)vReal[i];
-    if(i>=13 && i <= 14) bandValues[12] += (int)vReal[i];
-    if(i>=14 && i <= 15) bandValues[13] += (int)vReal[i];
-    if(i>=15 && i <= 16) bandValues[14] += (int)vReal[i];
-    if(i>=16 && i <= 17) bandValues[15] += (int)vReal[i];
-    if(i>=17 && i <= 18) bandValues[16] += (int)vReal[i];
-    if(i>=18 && i <= 20) bandValues[17] += (int)vReal[i];
-    if(i>=20 && i <= 24) bandValues[18] += (int)vReal[i];
-    if(i>=24 && i <= 28) bandValues[19] += (int)vReal[i];
-    if(i>=28 && i <= 34) bandValues[20] += (int)vReal[i];
-    if(i>=34 && i <= 40) bandValues[21] += (int)vReal[i];
-    if(i>=40 && i <= 47) bandValues[22] += (int)vReal[i];
-    if(i>=47 && i <= 55) bandValues[23] += (int)vReal[i];
-    if(i>=55 && i <= 65) bandValues[24] += (int)vReal[i];
-    if(i>=65 && i <= 77) bandValues[25] += (int)vReal[i];
-    if(i>=77 && i <= 91) bandValues[26] += (int)vReal[i];
-    if(i>=91 && i <= 108) bandValues[27] += (int)vReal[i];
-    if(i>=108 && i <= 127) bandValues[28] += (int)vReal[i];
-    if(i>=127 && i <= 150) bandValues[29] += (int)vReal[i];
-    if(i>=150 && i <= 178) bandValues[30] += (int)vReal[i];
-    if(i>=178 && i <= 210) bandValues[31] += (int)vReal[i];
-    if(i>=210 && i <= 248) bandValues[32] += (int)vReal[i];
-
-
-    }
-  }
-
-  // Process the FFT data into bar heights
-  for (byte band = 0; band < NUM_BANDS; band++) {
-
-   // Scale the bars for the display
-    int barHeight = bandValues[band] / AMPLITUDE;
-    if (barHeight > TOP) barHeight = TOP;
-
-    // Small amount of averaging between frames
-    barHeight = ((oldBarHeights[band] * 1) + barHeight) / 2;
-
-    // Move peak up
-    if (barHeight > peak[band]) {
-      peak[band] = min(TOP, barHeight);
-    }
-    // paintBlack();
-    // Draw bars
-    switch (barMode) {
-      case 0:
-          paletteBars(band, barHeight);
-          whitePeak(band);
-        break;
-      case 1:
-        rainbowBars(band, barHeight);
-        whitePeak(band);
-        break;
-      case 2:
-        purpleBars(band, barHeight);
-        whitePeak(band);
-        break;
-      case 3:
-        centerBars(band, barHeight);
-        break;
-      case 4:
-        changingBars(band, barHeight);
-        break;
-      case 5:
-        waterfall(band);
-        break;
+        nblendPaletteTowardPalette( currentPalette, targetPalette, 24);
     }
 
-    // // // Draw peaks
-    // switch (buttonPushCounter) {
-    //   case 0:
-    //     whitePeak(band);
-    //     break;
-    //   case 1:
-    //     outrunPeak(band);
-    //     break;
-    //   case 2:
-    //     whitePeak(band);
-    //     break;
-    //   case 3:
-    //     // No peaks
-    //     break;
-    //   case 4:
-    //     // No peaks
-    //     break;
-    //   case 5:
-    //     // No peaks
-    //     break;
-    // }
+    FastLED.clear();
 
-    // Save oldBarHeights for averaging later
-    oldBarHeights[band] = barHeight;
-  }
+    doFFT();
+    // Decay peak
+    EVERY_N_MILLISECONDS(60) {
+      for (byte band = 0; band < NUM_BANDS; band++)
+        if (peak[band] > 0) peak[band] -= 1;
+      colorTimer++;
+    }
 
-  // Decay peak
-  EVERY_N_MILLISECONDS(60) {
-    for (byte band = 0; band < NUM_BANDS; band++)
-      if (peak[band] > 0) peak[band] -= 1;
-    colorTimer++;
-  }
+    // Used in some of the patterns
+    EVERY_N_MILLISECONDS(10) {
+      colorTimer++;
+    }
 
-  // Used in some of the patterns
-  EVERY_N_MILLISECONDS(10) {
-    colorTimer++;
-  }
+    EVERY_N_SECONDS(10) {
+      if (autoChangePatterns) buttonPushCounter = (buttonPushCounter + 1) % 6;
+    }
 
-  EVERY_N_SECONDS(10) {
-    if (autoChangePatterns) buttonPushCounter = (buttonPushCounter + 1) % 6;
-  }
-
-  FastLED.show();
+    FastLED.show();
   }
 }
 
@@ -907,18 +736,18 @@ void doFFT() {
     }
 
     // Draw bars
-    switch (buttonPushCounter) {
+    switch (barMode) {
       case 0:
           paletteBars(band, barHeight);
-          // whitePeak(band);
+          whitePeak(band);
         break;
       case 1:
         rainbowBars(band, barHeight);
-        // whitePeak(band);
+        whitePeak(band);
         break;
       case 2:
         purpleBars(band, barHeight);
-        // whitePeak(band);
+        whitePeak(band);
         break;
       case 3:
         centerBars(band, barHeight);
