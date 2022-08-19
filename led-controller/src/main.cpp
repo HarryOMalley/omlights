@@ -7,7 +7,7 @@
 const char *ssid = "Lima";
 const char *password = "Limesaregreat";
 
-const char *mqtt_server = "192.168.1.167";
+const char *mqtt_server = "10.0.0.2";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
