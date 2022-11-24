@@ -4,17 +4,27 @@
 #include <PubSubClient.h>
 #include <Wire.h>
 
-const char *ssid = "Lima";
-const char *password = "Limesaregreat";
+// const char *ssid = "Lima";
+// const char *password = "Limesaregreat";
 
-const char *mqtt_server = "10.0.0.2";
+const char *ssid = "StudentInternetParadeRouter";
+const char *password = "T2MBOPAR01";
+
+// const char *mqtt_server = "10.0.0.2";
+
+const char *mqtt_server = "io.adafruit.com";
+const char *mqtt_username = "HarryOMalley";
+const char *mqtt_key = "78b91cccb9054734a0009f4ab4e01dc0";
+
+// const char *mqtt_server = "io.adafruit.com";
+
+// const char *passkey = "78b91cccb9054734a0009f4ab4e01dc0";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[50];
 int value = 0;
-
 
 // Button stuff
 int buttonPushCounter = 0;
@@ -37,7 +47,7 @@ void reconnect();
 void mqttCallback(char *topic, byte *message, unsigned int length);
 
 void setup() {
-  
+
   Serial.begin(9600);
 
   WiFi.begin(ssid, password);
@@ -63,11 +73,12 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("StrobeButton")) {
+    const char *clientID = "StrobeButton";
+    if (client.connect(clientID, mqtt_username, mqtt_key)) {
       Serial.println("Connected to MQTT Server");
       Serial.println("Subscribing to topics");
       // Subscribe
-      client.subscribe("strobe");
+      client.subscribe("HarryOMalley/feeds/strobe");
       Serial.println("Subscribed to topics");
     } else {
       Serial.print("failed, rc=");
@@ -92,15 +103,14 @@ void mqttCallback(char *topicIn, byte *message, unsigned int length) {
   Serial.println();
   // Changes the output state according to the message
   String topic = String(topicIn);
-  
-  if (topic == "strobe") {
+
+  if (topic == "HarryOMalley/feeds/strobe") {
     if (messageTemp == "true" || messageTemp == "on") {
       strobeStatus = 1;
     } else {
       strobeStatus = 0;
     }
-  }
-  else {
+  } else {
     Serial.println("Received unknown message, ignoring");
   }
 }
@@ -108,18 +118,18 @@ void mqttCallback(char *topicIn, byte *message, unsigned int length) {
 void toggleStrobe() {
   Serial.println("Toggling strobe");
   Serial.println("Strobe status:" + strobeStatus);
-  if(strobeStatus == 0) {
+  if (strobeStatus == 0) {
     strobeStatus = 1;
-    client.publish("strobe", "on");
+    client.publish("HarryOMalley/feeds/strobe", "on");
   } else {
     strobeStatus = 0;
-    client.publish("strobe", "off");
+    client.publish("HarryOMalley/feeds/strobe", "off");
   }
 }
 
 void changePalette() {
   Serial.println("Changing palette");
-  client.publish("changePalette", "");
+  client.publish("HarryOMalley/feeds/changePalette", "");
 }
 
 /********************************
@@ -133,5 +143,4 @@ void loop() {
   }
   client.loop();
   strobeButton.read();
-
 }

@@ -4,25 +4,19 @@
 // presses within 2 seconds Edited to add Neomatrix support for easier
 // compatibility with different layouts.
 #define FASTLED_INTERNAL
-#include "WiFi.h"
+// #include "WiFi.h"
 #include <Arduino.h>
+#include <ESP8266Wifi.h>
 #include <EasyButton.h>
 #include <FastLED_NeoMatrix.h>
 #include <PubSubClient.h>
 #include <Wire.h>
 #include <arduinoFFT.h>
 
-// const char *ssid = "Lima";
-// const char *password = "Limesaregreat";
+const char *ssid = "Lima";
+const char *password = "Limesaregreat";
 
-const char *ssid = "StudentInternetParadeRouter";
-const char *password = "T2MBOPAR01";
-
-// const char *mqtt_server = "10.0.0.2";
-
-const char *mqtt_server = "io.adafruit.com";
-const char *mqtt_username = "HarryOMalley";
-const char *mqtt_key = "78b91cccb9054734a0009f4ab4e01dc0";
+const char *mqtt_server = "10.0.0.2";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -30,35 +24,20 @@ long lastMsg = 0;
 char msg[50];
 int value = 0;
 
-#define SAMPLES 512 // Must be a power of 2
-#define SAMPLING_FREQ                                                          \
-  36000 // Hz, must be 40000 or less due to ADC conversion time. Determines
-        // maximum frequency that can be analysed by the FFT Fmax=sampleF/2.
-uint16_t AMPLITUDE =
-    2000; // Depending on your audio source level, you may need to alter this
-          // value. Can be used as a 'sensitivity' control.
-#define AUDIO_IN_PIN 35 // Signal in on this pin
-#define LED_PIN 5       // LED strip data
-#define BTN_PIN 4       // Connect a push button to this pin to change patterns
-#define LONG_PRESS_MS 200 // Number of ms to count as a long press
-#define COLOR_ORDER GRB   // If colours look wrong, play with this
-#define CHIPSET WS2812B   // LED strip type
+#define LED_PIN 14      // LED strip data
+#define COLOR_ORDER GRB // If colours look wrong, play with this
+#define CHIPSET WS2812B // LED strip type
 #define MAX_MILLIAMPS                                                          \
   35000 // Careful with the amount of power here if running off USB port
 const int BRIGHTNESS_SETTINGS[3] = {
-    255, 100, 5};    // 3 Integer array for 3 brightness settings (based on
+    5, 100, 255};    // 3 Integer array for 3 brightness settings (based on
                      // pressing+holding BTN_PIN)
 #define LED_VOLTS 12 // Usually 5 or 12
-#define NUM_BANDS                                                              \
-  30 // To change this, you will need to change the bunch of if statements
-     // describing the mapping from bins to bands
-#define NOISE 200 // Used as a crude noise filter, values below this are ignore
 
-#define MATRIX_TILE_WIDTH                                                      \
-  30 // width of EACH NEOPIXEL MATRIX (not total display)
-#define MATRIX_TILE_HEIGHT 10 // height of each matrix
-#define MATRIX_TILE_H 1       // number of matrices arranged horizontally
-#define MATRIX_TILE_V 1       // number of matrices arranged vertically
+#define MATRIX_TILE_WIDTH 5 // width of EACH NEOPIXEL MATRIX (not total display)
+#define MATRIX_TILE_HEIGHT 5 // height of each matrix
+#define MATRIX_TILE_H 1      // number of matrices arranged horizontally
+#define MATRIX_TILE_V 1      // number of matrices arranged vertically
 
 // Used by NeoMatrix
 #define MATRIX_WIDTH (MATRIX_TILE_WIDTH * MATRIX_TILE_H)
@@ -68,28 +47,8 @@ const int BRIGHTNESS_SETTINGS[3] = {
 // Compat for some other demos
 #define NUM_LEDS NUM_MATRIX
 
-#define BAR_WIDTH                                                              \
-  (MATRIX_WIDTH / (NUM_BANDS - 1)) // If width >= 8 light 1 LED width per bar,
-                                   // >= 16 light 2 LEDs width bar etc
-#define TOP (MATRIX_HEIGHT - 0)    // Don't allow the bars to go offscreen
 #define SERPENTINE                                                             \
   true // Set to false if your LEDS are connected end to end, true if serpentine
-
-unsigned int sampling_period_us;
-byte peak[MATRIX_WIDTH]; // The length of these arrays must be >= NUM_BANDS
-int oldBarHeights[MATRIX_WIDTH];
-int bandValues[MATRIX_WIDTH];
-double vReal[SAMPLES];
-double vImag[SAMPLES];
-unsigned long newTime;
-arduinoFFT FFT = arduinoFFT(vReal, vImag, SAMPLES, SAMPLING_FREQ);
-
-// Button stuff
-int buttonPushCounter = 0;
-bool autoChangePatterns = false;
-EasyButton modeBtn(BTN_PIN);
-
-int barMode = 0;
 
 uint8_t mode = 0;
 uint8_t strobeStatus = 0;
@@ -286,27 +245,14 @@ FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(
         NEO_TILE_TOP + NEO_TILE_LEFT + NEO_TILE_ROWS + NEO_TILE_PROGRESSIVE);
 
 void reconnect();
-void initialiseArrays();
 void changeMode();
-void startAutoMode();
-void brightnessButton();
 void brightnessOff();
-void rainbowBars(int band, int barHeight);
-void purpleBars(int band, int barHeight);
-void changingBars(int band, int barHeight);
-void centerBars(int band, int barHeight);
-void whitePeak(int band);
-void outrunPeak(int band);
-void waterfall(int band);
 void mqttCallback(char *topic, byte *message, unsigned int length);
 void paintWhite();
 void paintBlack();
-void doFFT();
-void paletteBars(int band, int barHeight);
 
 void setup() {
-  initialiseArrays();
-  Serial.begin(115200);
+  Serial.begin(9600);
   FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS)
       .setCorrection(TypicalSMD5050);
   FastLED.setMaxPowerInVoltsAndMilliamps(LED_VOLTS, MAX_MILLIAMPS);
@@ -324,35 +270,22 @@ void setup() {
 
   client.setServer(mqtt_server, 1883);
   client.setCallback(mqttCallback);
-  // client.setCredentials( "user", "test");
-  // modeBtn.begin();
-  // modeBtn.onPressed(changeMode);
-  // modeBtn.onPressedFor(LONG_PRESS_MS, brightnessButton);
-  // modeBtn.onSequence(3, 2000, startAutoMode);
-  // modeBtn.onSequence(5, 2000, brightnessOff);
-  sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQ));
 }
-
-String topic_prefix = "HarryOMalley/feeds/matrix/";
 
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("Matrix", mqtt_username, mqtt_key)) {
+    if (client.connect("Matrix")) {
       Serial.println("Connected to MQTT Server");
       Serial.println("Subscribing to topics");
       // Subscribe
-      client.subscribe("HarryOMalley/feeds/strobe");
-      client.subscribe("HarryOMalley/g/matrix");
-      client.subscribe("HarryOMalley/feeds/brightness");
-      client.subscribe("HarryOMalley/feeds/amplitude");
-      client.subscribe("HarryOMalley/feeds/barMode");
-      client.subscribe("HarryOMalley/feeds/changePalette");
-      client.subscribe("HarryOMalley/feeds/setPalette");
-
-      client.subscribe("HarryOMalley/feeds/strobeRate");
+      client.subscribe("matrix/brightness");
+      client.subscribe("strobe");
+      client.subscribe("strobe/rate");
+      client.subscribe("changePalette");
+      client.subscribe("setPalette");
       Serial.println("Subscribed to topics");
     } else {
       Serial.print("failed, rc=");
@@ -377,10 +310,7 @@ void mqttCallback(char *topicIn, byte *message, unsigned int length) {
   Serial.println();
   // Changes the output state according to the message
   String topic = String(topicIn);
-  // if(topic == "HarryOMalley/g/matrix") {
-
-  // }
-  if (topic == "HarryOMalley/feeds/brightness") {
+  if (topic == "matrix/brightness") {
     // Serial.print("Changing output to ");
     if (messageTemp == "2") {
       Serial.println("on");
@@ -399,25 +329,14 @@ void mqttCallback(char *topicIn, byte *message, unsigned int length) {
     }
   }
 
-  else if (topic == "HarryOMalley/feeds/amplitude") {
-    // Serial.print("Changing output to ");
-    AMPLITUDE = messageTemp.toInt();
-    Serial.println(AMPLITUDE);
-  }
-
-  else if (topic == "HarryOMalley/feeds/strobe") {
+  else if (topic == "strobe") {
     if (messageTemp == "true" || messageTemp == "on") {
       mode = 1;
     } else {
       mode = 0;
     }
-  } else if (topic == "HarryOMalley/feeds/strobeRate") {
+  } else if (topic == "strobe/rate") {
     strobeRate = messageTemp.toInt();
-    Serial.println("Setting stroberate");
-  }
-
-  else if (topic == "HarryOMalley/feeds/barMode") {
-    barMode = messageTemp.toInt();
   } else if (topic == "changePalette") {
     if (paletteIndex > 9) {
       paletteIndex = 0;
@@ -428,7 +347,7 @@ void mqttCallback(char *topicIn, byte *message, unsigned int length) {
     targetPalette = paletteList[paletteIndex];
   }
 
-  else if (topic == "HarryOMalley/feeds/setPalette") {
+  else if (topic == "setPalette") {
     int index = messageTemp.toInt();
     if (index > -1 && index <= 9) {
       paletteIndex = index;
@@ -438,25 +357,13 @@ void mqttCallback(char *topicIn, byte *message, unsigned int length) {
     Serial.println("Received unknown message, ignoring");
   }
 }
-void initialiseArrays() {
-  for (int i = 0; i < MATRIX_WIDTH; i++) {
-    peak[i] = 0;
-    oldBarHeights[i] = 0;
-    bandValues[i] = 0;
-  }
-}
 
 void changeMode() {
   // Serial.println("Button pressed");
   if (FastLED.getBrightness() == 0)
     FastLED.setBrightness(
         BRIGHTNESS_SETTINGS[0]); // Re-enable if lights are "off"
-  autoChangePatterns = false;
-
-  buttonPushCounter = (buttonPushCounter + 1) % 6;
 }
-
-void startAutoMode() { autoChangePatterns = true; }
 
 void brightnessButton() {
   if (FastLED.getBrightness() == BRIGHTNESS_SETTINGS[2])
@@ -505,195 +412,10 @@ void loop() {
 
     FastLED.clear();
 
-    doFFT();
-    // Decay peak
-    EVERY_N_MILLISECONDS(60) {
-      for (byte band = 0; band < NUM_BANDS; band++)
-        if (peak[band] > 0)
-          peak[band] -= 1;
-      colorTimer++;
-    }
-
     // Used in some of the patterns
     EVERY_N_MILLISECONDS(10) { colorTimer++; }
 
-    EVERY_N_SECONDS(10) {
-      if (autoChangePatterns)
-        buttonPushCounter = (buttonPushCounter + 1) % 6;
-    }
-
     FastLED.show();
-  }
-}
-
-// do fft
-
-void doFFT() {
-  // Serial.println("Going to calculate FFT");
-  try {
-
-    // Reset bandValues[]
-    for (int i = 0; i < NUM_BANDS; i++) {
-      bandValues[i] = 0;
-    }
-
-    // Sample the audio pin
-    for (int i = 0; i < SAMPLES; i++) {
-      newTime = micros();
-      vReal[i] = analogRead(
-          AUDIO_IN_PIN); // A conversion takes about 9.7uS on an ESP32
-      vImag[i] = 0;
-      while ((micros() - newTime) < sampling_period_us) { /* chill */
-      }
-    }
-
-    // Compute FFT
-    FFT.DCRemoval();
-    FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-    FFT.Compute(FFT_FORWARD);
-    FFT.ComplexToMagnitude();
-
-    // Analyse FFT results
-    for (int i = 2; i < (SAMPLES / 2);
-         i++) { // Don't use sample 0 and only first SAMPLES/2 are usable. Each
-                // array element represents a frequency bin and its value the
-                // amplitude.
-      if (vReal[i] > NOISE) { // Add a crude noise filter
-
-        if (i <= 2)
-          bandValues[0] += (int)vReal[i];
-        if (i >= 2 && i <= 3)
-          bandValues[1] += (int)vReal[i];
-        if (i >= 3 && i <= 4)
-          bandValues[2] += (int)vReal[i];
-        if (i >= 4 && i <= 5)
-          bandValues[3] += (int)vReal[i];
-        if (i >= 5 && i <= 6)
-          bandValues[4] += (int)vReal[i];
-        if (i >= 6 && i <= 7)
-          bandValues[5] += (int)vReal[i];
-        if (i >= 7 && i <= 8)
-          bandValues[6] += (int)vReal[i];
-        if (i >= 8 && i <= 9)
-          bandValues[7] += (int)vReal[i];
-        if (i >= 9 && i <= 10)
-          bandValues[8] += (int)vReal[i];
-        if (i >= 10 && i <= 11)
-          bandValues[9] += (int)vReal[i];
-        if (i >= 11 && i <= 12)
-          bandValues[10] += (int)vReal[i];
-        if (i >= 12 && i <= 13)
-          bandValues[11] += (int)vReal[i];
-        if (i >= 13 && i <= 14)
-          bandValues[12] += (int)vReal[i];
-        if (i >= 14 && i <= 15)
-          bandValues[13] += (int)vReal[i];
-        if (i >= 15 && i <= 16)
-          bandValues[14] += (int)vReal[i];
-        if (i >= 16 && i <= 17)
-          bandValues[15] += (int)vReal[i];
-        if (i >= 17 && i <= 18)
-          bandValues[16] += (int)vReal[i];
-        if (i >= 18 && i <= 20)
-          bandValues[17] += (int)vReal[i];
-        if (i >= 20 && i <= 24)
-          bandValues[18] += (int)vReal[i];
-        if (i >= 24 && i <= 28)
-          bandValues[19] += (int)vReal[i];
-        if (i >= 28 && i <= 34)
-          bandValues[20] += (int)vReal[i];
-        if (i >= 34 && i <= 40)
-          bandValues[21] += (int)vReal[i];
-        if (i >= 40 && i <= 47)
-          bandValues[22] += (int)vReal[i];
-        if (i >= 47 && i <= 55)
-          bandValues[23] += (int)vReal[i];
-        if (i >= 55 && i <= 65)
-          bandValues[24] += (int)vReal[i];
-        if (i >= 65 && i <= 88)
-          bandValues[25] += (int)vReal[i];
-        if (i >= 88 && i <= 120)
-          bandValues[26] += (int)vReal[i];
-        if (i >= 120 && i <= 160)
-          bandValues[27] += (int)vReal[i];
-        if (i >= 160 && i <= 190)
-          bandValues[28] += (int)vReal[i];
-        if (i >= 190 && i <= 248)
-          bandValues[29] += (int)vReal[i];
-        // if(i>=150 && i <= 178) bandValues[30] += (int)vReal[i];
-        // if(i>=178 && i <= 210) bandValues[31] += (int)vReal[i];
-        // if(i>=210 && i <= 248) bandValues[32] += (int)vReal[i];
-      }
-    }
-
-    // Process the FFT data into bar heights
-    for (byte band = 0; band < NUM_BANDS; band++) {
-
-      // Scale the bars for the display
-      int barHeight = bandValues[band] / AMPLITUDE;
-      if (barHeight > TOP)
-        barHeight = TOP;
-
-      // Small amount of averaging between frames
-      barHeight = ((oldBarHeights[band] * 1) + barHeight) / 2;
-
-      // Move peak up
-      if (barHeight > peak[band]) {
-        peak[band] = min(TOP, barHeight);
-      }
-
-      // Draw bars
-      switch (barMode) {
-      case 0:
-        paletteBars(band, barHeight);
-        whitePeak(band);
-        break;
-      case 1:
-        rainbowBars(band, barHeight);
-        whitePeak(band);
-        break;
-      case 2:
-        purpleBars(band, barHeight);
-        whitePeak(band);
-        break;
-      case 3:
-        centerBars(band, barHeight);
-        break;
-      case 4:
-        changingBars(band, barHeight);
-        break;
-      case 5:
-        waterfall(band);
-        break;
-      }
-
-      // // // Draw peaks
-      // switch (buttonPushCounter) {
-      //   case 0:
-      //     whitePeak(band);
-      //     break;
-      //   case 1:
-      //     outrunPeak(band);
-      //     break;
-      //   case 2:
-      //     whitePeak(band);
-      //     break;
-      //   case 3:
-      //     // No peaks
-      //     break;
-      //   case 4:
-      //     // No peaks
-      //     break;
-      //   case 5:
-      //     // No peaks
-      //     break;
-      // }
-
-      // Save oldBarHeights for averaging later
-      oldBarHeights[band] = barHeight;
-    }
-  } catch (std::exception &e) {
-    Serial.println("Failed to calculate FFT");
   }
 }
 
@@ -713,102 +435,6 @@ void paintBlack() {
   for (int i = 0; i < MATRIX_WIDTH; i++) {
     for (int j = 0; j < MATRIX_HEIGHT; j++) {
       matrix->drawPixel(i, j, CRGB(0, 0, 0));
-    }
-  }
-}
-
-void rainbowBars(int band, int barHeight) {
-  int xStart = BAR_WIDTH * band;
-  for (int x = xStart; x < xStart + BAR_WIDTH; x++) {
-    for (int y = TOP; y >= TOP - barHeight; y--) {
-      matrix->drawPixel(x, y,
-                        CHSV((x / BAR_WIDTH) * (255 / NUM_BANDS), 255, 255));
-    }
-  }
-}
-
-void purpleBars(int band, int barHeight) {
-  int xStart = BAR_WIDTH * band;
-  for (int x = xStart; x < xStart + BAR_WIDTH; x++) {
-    for (int y = TOP; y >= TOP - barHeight; y--) {
-      matrix->drawPixel(
-          x, y, ColorFromPalette(purplePal, y * (255 / (barHeight + 1))));
-    }
-  }
-}
-
-void paletteBars(int band, int barHeight) {
-  int xStart = BAR_WIDTH * band;
-  for (int x = xStart; x < xStart + BAR_WIDTH; x++) {
-    for (int y = TOP; y >= TOP - barHeight; y--) {
-      matrix->drawPixel(
-          x, y, ColorFromPalette(currentPalette, y * (255 / (barHeight + 1))));
-    }
-  }
-}
-
-void changingBars(int band, int barHeight) {
-  int xStart = BAR_WIDTH * band;
-  for (int x = xStart; x < xStart + BAR_WIDTH; x++) {
-    for (int y = TOP; y >= TOP - barHeight; y--) {
-      matrix->drawPixel(
-          x, y, CHSV(y * (255 / MATRIX_TILE_HEIGHT) + colorTimer, 255, 255));
-    }
-  }
-}
-
-void centerBars(int band, int barHeight) {
-  int xStart = BAR_WIDTH * band;
-  for (int x = xStart; x < xStart + BAR_WIDTH; x++) {
-    if (barHeight % 2 == 0)
-      barHeight--;
-    int yStart = ((MATRIX_TILE_HEIGHT - barHeight) / 2);
-    for (int y = yStart; y <= (yStart + barHeight); y++) {
-      int colorIndex = constrain((y - yStart) * (255 / barHeight), 0, 255);
-      matrix->drawPixel(x, y, ColorFromPalette(heatPal, colorIndex));
-    }
-  }
-}
-
-void whitePeak(int band) {
-  int xStart = BAR_WIDTH * band;
-  int peakHeight = TOP - peak[band] - 1;
-  for (int x = xStart; x < xStart + BAR_WIDTH; x++) {
-    matrix->drawPixel(x, peakHeight, CHSV(0, 0, 255));
-  }
-}
-
-void outrunPeak(int band) {
-  int xStart = BAR_WIDTH * band;
-  int peakHeight = TOP - peak[band] - 1;
-  for (int x = xStart; x < xStart + BAR_WIDTH; x++) {
-    matrix->drawPixel(
-        x, peakHeight,
-        ColorFromPalette(outrunPal, peakHeight * (255 / MATRIX_TILE_HEIGHT)));
-  }
-}
-
-void waterfall(int band) {
-  int xStart = BAR_WIDTH * band;
-  double highestBandValue = 60000; // Set this to calibrate your waterfall
-
-  // Draw bottom line
-  for (int x = xStart; x < xStart + BAR_WIDTH; x++) {
-    matrix->drawPixel(
-        x, 0,
-        CHSV(constrain(map(bandValues[band], 0, highestBandValue, 160, 0), 0,
-                       160),
-             255, 255));
-  }
-
-  // Move screen up starting at 2nd row from top
-  if (band == NUM_BANDS - 1) {
-    for (int y = MATRIX_HEIGHT - 2; y >= 0; y--) {
-      for (int x = 0; x < MATRIX_WIDTH; x++) { // TODO: FIX THIS
-        int pixelIndexY = matrix->XY(x, y + 1);
-        int pixelIndex = matrix->XY(x, y);
-        leds[pixelIndexY] = leds[pixelIndex];
-      }
     }
   }
 }
